@@ -1,2 +1,2 @@
-# Mermoz :small_airplane:
+# Mermoz :airplane:
 Web crawler for multi-threaded computers
