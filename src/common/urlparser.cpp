@@ -102,11 +102,10 @@ void UrlParser::parse_authority(std::streambuf* sb)
     }
   }
 
-  port = 80;
   if (semicolon_pos > 0)
   {
     domain = authority.substr(domain_limit, semicolon_pos - domain_limit);
-    port = atoi(authority.substr(semicolon_pos + 1, pos - semicolon_pos - 1).c_str());
+    port = authority.substr(semicolon_pos + 1, pos - semicolon_pos - 1);
   }
   else
   {
@@ -176,7 +175,6 @@ void UrlParser::parse_query(std::streambuf* sb)
 
       if (c == ';' || c == '&')
       {
-        std::cout << "separator" << std::endl;
         query_args.push_back(query.substr(sep_pos + 1, pos - sep_pos - 1));
         sep_pos = pos;
       }

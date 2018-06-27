@@ -27,7 +27,7 @@ public:
   std::string user;
   std::string pass;
   std::string domain;
-  int port;
+  std::string port;
 
   std::string path;
   std::vector<std::string> path_tree;
