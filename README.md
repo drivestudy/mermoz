@@ -1,11 +1,11 @@
 # Mermoz :airplane:
 Web crawler for multi-threaded computers
 
-# Examples
+## Examples
 
-## URL Parser
+### URL Parser
 
-One of the tool developped within the crawler is the URL parser.
+One of the tool developed within the crawler is the URL parser.
 You can compile the CLI example:
 ```
 $ make urlparser
@@ -43,3 +43,9 @@ path
 query     
 fragment
 ```
+
+## Contributing
+Please first read [`CONTRIBUTING.md`](CONTRIBUTING.md) and propose what you want or you can fix or add functionalities detailed
+within [`TODO.md`](TODO.md).
+
+For any questions, comments, or collaborations, please use: **n.martin [at] qwantresearch [dot] com**.
