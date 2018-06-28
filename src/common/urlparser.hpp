@@ -9,6 +9,8 @@
 
 namespace mermoz
 {
+namespace common
+{
 
 class UrlParser
 {
@@ -54,6 +56,7 @@ private:
   void parse_fragment(std::streambuf* sb);
 }; // class UrlParser
 
+} // namespace common
 } // namespace mermoz
 
 #endif // MERMOZ_URLPARSER_H__

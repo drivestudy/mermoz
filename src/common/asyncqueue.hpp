@@ -1,5 +1,5 @@
-#ifndef ASYNCQUEUE_H
-#define ASYNCQUEUE_H
+#ifndef ASYNCQUEUE_H__
+#define ASYNCQUEUE_H__
 
 #include <queue>
 #include <mutex>
@@ -92,4 +92,4 @@ bool async_queue<T>::empty()
   return e;
 }
 
-#endif // ASYNCQUEUE_H
+#endif // ASYNCQUEUE_H__

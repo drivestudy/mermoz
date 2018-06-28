@@ -2,6 +2,8 @@
 
 namespace mermoz
 {
+namespace common
+{
 
 bool UrlParser::parse()
 {
@@ -118,7 +120,7 @@ void UrlParser::parse_authority(std::streambuf* sb)
 void UrlParser::parse_path(std::streambuf* sb)
 {
   do_path = false;
-  
+
   int pos {0};
   int slash_pos {-1};
   char c;
@@ -157,7 +159,7 @@ void UrlParser::parse_path(std::streambuf* sb)
 void UrlParser::parse_query(std::streambuf* sb)
 {
   do_query = false;
-  
+
   int pos {0};
   int sep_pos {-1};
   char c;
@@ -191,7 +193,7 @@ void UrlParser::parse_query(std::streambuf* sb)
 void UrlParser::parse_fragment(std::streambuf* sb)
 {
   do_fragment = false;
-  
+
   char c;
 
   while ((c = sb->sbumpc()) != EOF)
@@ -200,4 +202,5 @@ void UrlParser::parse_fragment(std::streambuf* sb)
   }
 }
 
+} // namespace common
 } // namespace mermoz

@@ -3,10 +3,12 @@
 
 #include "common/urlparser.cpp"
 
+namespace mc = mermoz::common;
+
 int main (int argc, char** argv)
 {
   std::string url(argv[1]);
-  mermoz::UrlParser up(url);
+  mc::UrlParser up(url);
 
   up.parse();
 
