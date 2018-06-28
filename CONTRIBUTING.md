@@ -7,8 +7,8 @@ To avoid errors with `C` files, please use:
 - `.cpp` for `C++` source files.
 
 ## Class naming, typenames, functions and variables
-All stuff which belong to `Graphee` must be declared within,
-the namespace `graphe::`.
+All stuff which belong to `Mermoz` must be declared within,
+the namespace `mermoz::`.
 
 Then specifically few rules:
 - Class names: `MyRandomClass` start and distinguish words with **uppercase**, no `_` in class names.
