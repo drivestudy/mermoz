@@ -44,6 +44,14 @@ query
 fragment
 ```
 
+## Dependencies
+This list is more or less like a memo:
+- `librdkafka++`
+- `boost/program_options`
+- `curl`
+- `gumbo`
+- `redis`
+
 ## Contributing
 Please first read [`CONTRIBUTING.md`](CONTRIBUTING.md) and propose what you want or you can fix or add functionalities detailed
 within [`TODO.md`](TODO.md).

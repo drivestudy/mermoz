@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <thread>
 
 #include <librdkafka/rdkafkacpp.h>
 
@@ -12,8 +13,8 @@ namespace po = boost::program_options;
 #include "common/common.hpp"
 namespace mc = mermoz::common;
 
-//#include "spider/spider.hpp"
-//namespace ms = mermoz::spider;
+#include "spider/spider.hpp"
+namespace ms = mermoz::spider;
 
 int main (int argc, char** argv)
 {
@@ -32,6 +33,41 @@ int main (int argc, char** argv)
   if (vmap.count("help"))
   {
     std::cout << desc << std::endl;
+    return 1;
+  }
+
+  bool status = true;
+  mc::async_queue<std::string> url_queue;
+  mc::async_queue<std::string> content_queue;
+  mc::async_queue<std::string> parsed_queue;
+
+  std::vector<std::thread> fetchers;
+
+  if (vmap.count("fetchers"))
+  {
+    for (int i = 0; i < vmap["fetchers"].as<int>(); i++)
+    {
+      fetchers.push_back(std::thread(ms::fetcher, &url_queue, &content_queue, &status));
+    }
+  }
+  else
+  {
+    std::cout << "The number of fetchers must be declared" << std::endl;
+    return 1;
+  }
+
+  std::vector<std::thread> parsers;
+
+  if (vmap.count("parsers"))
+  {
+    for (int i = 0; i < vmap["parsers"].as<int>(); i++)
+    {
+      parsers.push_back(std::thread(ms::parsers, &content_queue, &santize_queue, &status));
+    }
+  }
+  else
+  {
+    std::cout << "The number of parsers must be declared" << std::endl;
     return 1;
   }
 

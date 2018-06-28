@@ -5,6 +5,11 @@
 #include <mutex>
 #include <condition_variable>
 
+namespace mermoz
+{
+namespace common
+{
+
 template<typename T>
 class async_queue
 {
@@ -91,5 +96,8 @@ bool async_queue<T>::empty()
   mlock.unlock();
   return e;
 }
+
+} // namespace common
+} // namespace mermoz
 
 #endif // ASYNCQUEUE_H__
