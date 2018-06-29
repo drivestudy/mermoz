@@ -62,13 +62,27 @@ int main (int argc, char** argv)
   {
     for (int i = 0; i < vmap["parsers"].as<int>(); i++)
     {
-      parsers.push_back(std::thread(ms::parsers, &content_queue, &santize_queue, &status));
+      parsers.push_back(std::thread(ms::parser, &content_queue, &parsed_queue, &status));
     }
   }
   else
   {
     std::cout << "The number of parsers must be declared" << std::endl;
     return 1;
+  }
+
+  std::ifstream urlfile("urls.txt");
+  while (urlfile.good())
+  {
+    std::string url;
+    urlfile >> url;
+    url_queue.push(url);
+  }
+
+  std::ofstream ofp ("parsed.json");
+  while (status)
+  {
+    ofp << parsed_queue.pop_out();
   }
 
   return 0;

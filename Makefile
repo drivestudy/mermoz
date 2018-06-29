@@ -1,5 +1,6 @@
 CC = g++
-OPT = -O3 -pthread
+#OPT = -O3 -pthread
+OPT = -g -pthread
 INC = -I src/.
 LIB = -lrdkafka++ -lgumbo -lboost_program_options -lcurl
 
@@ -23,7 +24,7 @@ BINLIST = src/common/urlparser.o
 $(LIBMERMOZ): $(BINLIST)
 	ar rcs $@ $^
 
-spider: src/spider/spider.cpp src/spider/fetcher.cpp
+spider: src/spider/spider.cpp src/spider/fetcher.cpp src/spider/parser.cpp
 	$(CC) $(OPT) $(INC) -o build/$@ $^ $(LMMZ) $(LIB)
 
 examples: urlparser
