@@ -5,6 +5,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <string>
+#include <cstring>
 
 #include <curl/curl.h>
 

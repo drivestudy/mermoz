@@ -20,11 +20,12 @@ void fetcher(mc::async_queue<std::string>* url_queue,
 
     if (curl)
     {
-      std::string content;
-
       std::string url(url_queue->pop_out());
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
+
+      std::string content;
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
 
       res = curl_easy_perform(curl);
