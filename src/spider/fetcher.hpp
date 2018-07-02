@@ -11,6 +11,7 @@
 #include <curl/curl.h>
 
 #include "common/common.hpp"
+#include "spider/spider.hpp"
 
 namespace mermoz
 {

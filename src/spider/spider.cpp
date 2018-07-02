@@ -80,10 +80,20 @@ int main (int argc, char** argv)
     url_queue.push(url);
   }
 
-  std::ofstream ofp ("parsed.json");
+  std::ofstream ofp ("parsed.txt");
   while (status)
   {
-    ofp << parsed_queue.pop_out();
+    std::string message = parsed_queue.pop_out();
+
+    std::string url;
+    std::string text;
+    std::string links;
+
+    ms::unpack(message, {&url, &text, &links});
+
+    ofp << "URL : " << url << std::endl;
+    ofp << "TEXT : " << text << std::endl;
+    ofp << "LINKS : " << links << std::endl;
   }
 
   return 0;

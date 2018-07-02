@@ -7,7 +7,9 @@
 #include <string>
 
 #include "gumbo.h"
+
 #include "common/common.hpp"
+#include "spider/spider.hpp"
 
 namespace mermoz
 {

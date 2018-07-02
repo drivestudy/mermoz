@@ -13,16 +13,20 @@ void parser(mermoz::common::async_queue<std::string>* content_queue,
 {
   while (*status)
   {
-    GumboOutput* output = gumbo_parse(content_queue->pop_out().c_str());
+    std::string message = content_queue->pop_out();
 
-    std::string result ("{text: \'");
-    result.append(get_text(output->root));
+    std::string url;
+    std::string content;
+    unpack(message, {&url, &content});
 
-    result.append("\', links: \'");
-    result.append(get_links(output->root));
-    result.append("\'},\n");
+    GumboOutput* output = gumbo_parse(content.c_str());
 
-    parsed_queue->push(result);
+    std::string text = get_text(output->root);
+    std::string links = get_links(output->root);
+
+    pack(message, {&url, &text, &links});
+
+    parsed_queue->push(message);
 
     gumbo_destroy_output(&kGumboDefaultOptions, output);
   }

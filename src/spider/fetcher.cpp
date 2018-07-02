@@ -30,7 +30,10 @@ void fetcher(mc::async_queue<std::string>* url_queue,
 
       res = curl_easy_perform(curl);
 
-      content_queue->push(content);
+      std::string message;
+      pack(message, {&url, &content});
+
+      content_queue->push(message);
 
       curl_easy_cleanup(curl);
     }
