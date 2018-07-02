@@ -32,6 +32,7 @@ bool UrlParser::parse()
 void UrlParser::parse_scheme(std::streambuf* sb)
 {
   do_scheme = false;
+  bool has_separator = false;
 
   char c;
   while ((c = sb->sbumpc()) != EOF)
@@ -40,14 +41,28 @@ void UrlParser::parse_scheme(std::streambuf* sb)
       scheme.push_back(c);
     else
     {
+      has_separator = true;
       while ((c = sb->sbumpc()) == '/') {}
       sb->sungetc();
       break;
     }
   }
 
-  do_authority = true;
   do_parse = c != EOF;
+
+  if (!has_separator && !do_parse)
+  {
+    // case of relative pathes
+    sb->pubseekoff(0, std::ios_base::beg);
+    do_parse = true;
+
+    scheme = "";
+    do_path = true;
+  }
+  else
+  {
+    do_authority = true;
+  }
 }
 
 void UrlParser::parse_authority(std::streambuf* sb)
@@ -141,10 +156,14 @@ void UrlParser::parse_path(std::streambuf* sb)
     {
       path.push_back(c);
 
-      if (c == '/')
+      if (c == '/' && path.size() > 1)
       {
         path_tree.push_back(path.substr(slash_pos + 1, pos - slash_pos - 1));
         slash_pos = pos;
+      }
+      else if (c == '/' && path.size() == 1)
+      {
+        path.pop_back();
       }
 
       pos++;
