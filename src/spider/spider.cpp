@@ -124,13 +124,13 @@ void pack(std::string& pack, std::initializer_list<std::string*> args)
   {
     size_t arg_size = arg->size();
 
-    std::memcpy((void*)(&itpack),
+    std::memcpy((void*)(&*itpack),
                 (void*)(&arg_size),
                 sizeof(size_t));
 
     itpack += sizeof(size_t);
 
-    std::memcpy((void*)(&itpack),
+    std::memcpy((void*)(&*itpack),
                 (void*)(arg->data()),
                 arg_size);
 
@@ -147,7 +147,7 @@ void unpack(std::string& pack, std::initializer_list<std::string*> args)
     size_t arg_size;
 
     std::memcpy((void*)(&arg_size),
-                (void*)(&itpack),
+                (void*)(&*itpack),
                 sizeof(size_t));
 
     itpack += sizeof(size_t);
@@ -156,7 +156,7 @@ void unpack(std::string& pack, std::initializer_list<std::string*> args)
     arg->resize(arg_size);
 
     std::memcpy((void*)(&*arg->begin()),
-                (void*)(&itpack),
+                (void*)(&*itpack),
                 arg_size);
 
     itpack += arg_size;

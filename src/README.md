@@ -2,5 +2,5 @@
 
 They are organized in three directories:
 - The *common classes*,
-- the *URL server*, which dispatch URLs to be explored,
-- the *spider* which fetch and parse the pages.
+- the *URL server*, which dispatches URLs to be explored,
+- the *spider* which fetches and parse the pages.
