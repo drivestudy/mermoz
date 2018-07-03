@@ -15,13 +15,21 @@ namespace common
 class UrlParser
 {
 public:
+  UrlParser () :
+    url(""), do_parse(true), do_scheme(true), do_authority(false),
+    do_path(false), do_query(false), do_fragment(false) {}
+
   UrlParser (std::string& url) :
     url(url), do_parse(true), do_scheme(true), do_authority(false),
     do_path(false), do_query(false), do_fragment(false) {}
 
+  UrlParser& operator+=(UrlParser& rhs);
+
+  void set_url(std::string& url) {this->url = url;}
+
   bool parse();
 
-  const std::string url;
+  std::string url;
 
   std::string scheme;
 

@@ -29,6 +29,65 @@ bool UrlParser::parse()
   return true;
 }
 
+UrlParser& UrlParser::operator+=(UrlParser& rhs)
+{
+  if (this->scheme.empty() && this->authority.empty())
+  {
+    // L.H.S. has a relative path
+    this->scheme = rhs.scheme;
+    this->authority = rhs.authority;
+    this->user = rhs.user;
+    this->pass = rhs.pass;
+    this->port = rhs.port;
+
+    this->path_tree.insert(this->path_tree.begin(), rhs.path_tree.begin(), rhs.path_tree.end());
+  }
+  else if (rhs.scheme.empty() && rhs.authority.empty())
+  {
+    // R.H.S. has a relative path
+    this->path_tree.insert(this->path_tree.end(), rhs.path_tree.begin(), rhs.path_tree.end());
+
+    this->query = rhs.query;
+    this->query_args = rhs.query_args;
+
+    this->fragment = rhs.fragment;
+  }
+  else
+  {
+    throw std::invalid_argument("Both UrlParsers have scheme and/or authority");
+  }
+
+  // Cleanning up the path_tree vector
+  std::vector<std::string>::iterator i = this->path_tree.begin();
+  while (i != this->path_tree.end())
+  {
+    if (i->empty())
+    {
+      i = this->path_tree.erase(i);
+    }
+    else if (*i == "..")
+    {
+      i = this->path_tree.erase(i);
+      i--;
+      i = this->path_tree.erase(i);
+    }
+    else
+    {
+      i++;
+    }
+  }
+
+  // Constructing the full path
+  this->path = "";
+  for (auto& item : this->path_tree)
+  {
+    path.append(item);
+    path.append("/");
+  }
+  // Removes the last "/"
+  path.pop_back();
+}
+
 void UrlParser::parse_scheme(std::streambuf* sb)
 {
   do_scheme = false;
@@ -171,6 +230,11 @@ void UrlParser::parse_path(std::streambuf* sb)
   }
 
   path_tree.push_back(path.substr(slash_pos + 1, pos - slash_pos - 1));
+
+  if (path.empty())
+  {
+    path_tree.clear();
+  }
 
   do_parse = c != EOF;
 }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstring>
 
 #include "common/urlparser.cpp"
 
@@ -7,28 +8,54 @@ namespace mc = mermoz::common;
 
 int main (int argc, char** argv)
 {
-  std::string url(argv[1]);
-  mc::UrlParser up(url);
+  std::string url_left;
+  std::string url_right;
 
-  up.parse();
+  mc::UrlParser up_left;
+  mc::UrlParser up_right;
 
-  std::cout << "scheme    " << up.scheme << std::endl;
-  std::cout << "authority " << up.authority << std::endl;
-  std::cout << "  user    " << up.user << std::endl;
-  std::cout << "  pass    " << up.pass << std::endl;
-  std::cout << "  port    " << up.port << std::endl;
-  std::cout << "  domain  " << up.domain << std::endl;
-  std::cout << "path      " << up.path << std::endl;
-  for (int i = 0; i < up.path_tree.size(); i++)
+  if (argc == 2)
   {
-    std::cout << "  /       " << up.path_tree[i] << std::endl;
+    url_left = std::string(argv[1]);
+    up_left.set_url(url_left);
+
+    up_left.parse();
   }
-  std::cout << "query     " << up.query << std::endl;
-  for (int i = 0; i < up.query_args.size(); i++)
+  else if (argc == 4 && std::strcmp(argv[2], "+") == 0)
   {
-    std::cout << "  &       " << up.query_args[i] << std::endl;
+    url_left = std::string(argv[1]);
+    up_left.set_url(url_left);
+    up_left.parse();
+
+    url_right = std::string(argv[3]);
+    up_right.set_url(url_right);
+    up_right.parse();
+
+    up_left += up_right;
   }
-  std::cout << "fragment  " << up.fragment << std::endl;
+  else
+  {
+    std::cerr << "Unknown arguments. Exiting..." << std::endl;
+    exit(-1);
+  }
+
+  std::cout << "scheme    " << up_left.scheme << std::endl;
+  std::cout << "authority " << up_left.authority << std::endl;
+  std::cout << "  user    " << up_left.user << std::endl;
+  std::cout << "  pass    " << up_left.pass << std::endl;
+  std::cout << "  port    " << up_left.port << std::endl;
+  std::cout << "  domain  " << up_left.domain << std::endl;
+  std::cout << "path      " << up_left.path << std::endl;
+  for (auto& elem : up_left.path_tree)
+  {
+    std::cout << "   /      " << elem << std::endl;
+  }
+  std::cout << "query     " << up_left.query << std::endl;
+  for (auto& elem : up_left.query_args)
+  {
+    std::cout << "    &     " << elem << std::endl;
+  }
+  std::cout << "fragment  " << up_left.fragment << std::endl;
 
   return 0;
 }
