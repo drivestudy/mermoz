@@ -23,6 +23,8 @@ std::string get_text(GumboNode* node);
 
 std::string get_links(GumboNode* node);
 
+void text_cleaner(std::string& s);
+
 } // namespace spider
 } // namespace mermoz
 

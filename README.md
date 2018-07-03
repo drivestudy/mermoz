@@ -27,7 +27,6 @@ $ ./urlparser 'https://www.example.org/news/2017' + '../2016/june?os=linux#title
 ## Dependencies
 This list is more or less like a memo:
 - `boost/program_options` basics,
-- `librdkafka++` external services communications,
 - `curl` fetch pages,
 - `gumbo` fast and reliable HTML5 parser,
 - `redis` distributed in-memory DB.

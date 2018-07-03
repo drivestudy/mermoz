@@ -22,6 +22,8 @@ void parser(mermoz::common::async_queue<std::string>* content_queue,
     GumboOutput* output = gumbo_parse(content.c_str());
 
     std::string text = get_text(output->root);
+    text_cleaner(text);
+
     std::string links = get_links(output->root);
 
     mc::pack(message, {&url, &text, &links});
@@ -46,7 +48,7 @@ std::string get_text(GumboNode* node)
     GumboVector* children = &node->v.element.children;
     for (unsigned int i = 0; i < children->length; ++i)
     {
-      const std::string text = get_text(static_cast<GumboNode*>(children->data[i]));
+      std::string text = get_text(static_cast<GumboNode*>(children->data[i]));
       if (i != 0 && !text.empty())
       {
         fulltext.append(" ");
@@ -79,15 +81,51 @@ std::string get_links(GumboNode* node)
   GumboVector* children = &node->v.element.children;
   for (unsigned int i = 0; i < children->length; ++i)
   {
-    const std::string link = get_links(static_cast<GumboNode*>(children->data[i]));
+    std::string link = get_links(static_cast<GumboNode*>(children->data[i]));
     if (i != 0 && !link.empty())
     {
+      while (*link.begin() == ',' && !link.empty())
+      {
+        link.erase(link.begin());
+      }
       links.append(",");
     }
     links.append(link);
   }
 
   return links;
+}
+
+void text_cleaner (std::string& s)
+{
+  auto it = s.begin();
+
+  while (it != s.end())
+  {
+    if (*it == '\t')
+      *it = ' ';
+
+    if (*it == ' ' && *(it+1) == ' ')
+    {
+      it = s.erase(it);
+    }
+    else if (*it == ' ' && *(it+1) == '\n')
+    {
+      it = s.erase(it);
+    }
+    else if (*it == '\n' && *(it+1) == ' ')
+    {
+      it = s.erase(it+1);
+    }
+    else if (*it == '\n' && *(it+1) == '\n')
+    {
+      it = s.erase(it+1);
+    }
+    else
+    {
+      it++;
+    }
+  }
 }
 
 } // namespace spider
