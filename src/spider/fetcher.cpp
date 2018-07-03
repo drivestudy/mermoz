@@ -24,7 +24,7 @@ void fetcher(mc::async_queue<std::string>* url_queue,
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
-
+      
       std::string content;
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
 
@@ -45,9 +45,11 @@ size_t write_function (char* ptr, size_t size, size_t nmemb, void* userdata)
   std::string* content =
     reinterpret_cast<std::string*>(userdata);
 
-  content->append(ptr);
+  size_t relsize = size*nmemb;
 
-  return size*nmemb;
+  content->append(ptr, relsize);
+
+  return relsize;
 }
 
 } // namespace spider

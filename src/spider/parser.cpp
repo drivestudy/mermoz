@@ -48,7 +48,7 @@ std::string get_text(GumboNode* node)
     GumboVector* children = &node->v.element.children;
     for (unsigned int i = 0; i < children->length; ++i)
     {
-      std::string text = get_text(static_cast<GumboNode*>(children->data[i]));
+      const std::string text = get_text(static_cast<GumboNode*>(children->data[i]));
       if (i != 0 && !text.empty())
       {
         fulltext.append(" ");
