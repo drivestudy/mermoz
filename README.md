@@ -3,6 +3,8 @@ Web crawler for multi-threaded computers
 
 ## Examples
 
+The detailed readme of examples is located within [`examples/README.md`](examples/README.md).
+
 ### URL Parser
 
 One of the tool developed within the crawler is the URL parser.
@@ -17,9 +19,9 @@ To test it, run for instance:
 $ ./urlparser 'https://www.example.org/news/2017?mode=dark&os=linux#title'
 ```
 
-Also it can handle URL addition if there is relative pathes, such as:
+Also it can handle URL addition if there is relative paths, such as:
 ```
-$ ./urlparser 'https://www.example.org/news/2017' + '../2016/june#title'
+$ ./urlparser 'https://www.example.org/news/2017' + '../2016/june?os=linux#title'
 ```
 
 ## Dependencies

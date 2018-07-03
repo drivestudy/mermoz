@@ -40,7 +40,7 @@ fragment
 
 Also it can handle URL addition if there is relative pathes, such as:
 ```
-$ ./urlparser 'https://www.example.org/news/2017' + '../2016/june#title'
+$ ./urlparser 'https://www.example.org/news/2017' + '../2016/june?os=linux#title'
 scheme    https
 authority www.example.org
   user
