@@ -17,14 +17,14 @@ void parser(mermoz::common::async_queue<std::string>* content_queue,
 
     std::string url;
     std::string content;
-    unpack(message, {&url, &content});
+    mc::unpack(message, {&url, &content});
 
     GumboOutput* output = gumbo_parse(content.c_str());
 
     std::string text = get_text(output->root);
     std::string links = get_links(output->root);
 
-    pack(message, {&url, &text, &links});
+    mc::pack(message, {&url, &text, &links});
 
     parsed_queue->push(message);
 
