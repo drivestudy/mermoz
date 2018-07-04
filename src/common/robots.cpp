@@ -81,5 +81,70 @@ size_t Robots::write_function (char* ptr, size_t size, size_t nmemb, void* userd
   return relsize;
 }
 
+bool Robots::parse_file()
+{
+  if (robots_file.empty())
+  {
+    print_error("Nothing to parse.");
+    return false;
+  }
+
+  std::istringstream iss(robots_file);
+
+  std::string key;
+
+  bool read_settings {false};
+
+  while (!iss.eof())
+  {
+    iss >> key;
+
+    if (key[0] == '#')
+    {
+      iss.ignore(1024, '\n');
+      continue;
+    }
+
+    if (key.compare("User-agent:") == 0 && !read_settings)
+    {
+      iss >> key;
+      read_settings = key.compare("*") == 0 || key.compare(user_agent) == 0;
+    }
+
+    if (read_settings)
+    {
+      iss >> key;
+
+      if (key.compare("Disallow:") == 0)
+      {
+        iss >> key;
+        std::cout << "disallow: " << key << std::endl;
+        walls.push_back(UrlParser(key));
+        std::cout << "push" << std::endl;
+        *walls.end() += up_host;
+        std::cout << "add" << std::endl;
+        std::cout << *walls.end() << std::endl;
+        std::cout << "next..." << std::endl;
+      }
+      else if (key.compare("Allow:") == 0)
+      {
+        iss >> key;
+        std::cout << "allow: " << key << std::endl;
+        doors.push_back(UrlParser(key));
+        std::cout << "push" << std::endl;
+        *doors.end() += up_host;
+        std::cout << "next..." << std::endl;
+      }
+      else if (key.compare("Crawl-delay:") == 0)
+      {
+        iss >> key;
+        std::cout << "delay: " << key << std::endl;
+        crawl_delay = std::max(crawl_delay, std::atoi(key.c_str()));
+        std::cout << "next..." << std::endl;
+      }
+    }
+  }
+}
+
 } // namespace common
 } // namespace mermoz

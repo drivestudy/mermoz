@@ -1,6 +1,6 @@
 CC = g++
-OPT = -std=c++11 -O3 -pthread
-#OPT = -std=c++11 -g -pthread
+#OPT = -std=c++11 -O3 -pthread
+OPT = -std=c++11 -g -pthread
 INC = -I src/.
 LIB = -lgumbo -lboost_program_options -lcurl
 
@@ -27,7 +27,10 @@ $(LIBMERMOZ): $(BINLIST)
 spider: src/spider/spider.cpp src/spider/fetcher.cpp src/spider/parser.cpp
 	$(CC) $(OPT) $(INC) -o build/$@ $^ $(LIBMERMOZ) $(LIB) 
 
-examples: urlparser
+examples: urlparser robots
 
 urlparser: examples/urlparser.cpp
 	$(CC) $(OPT) $(INC) -o examples/$@ $^ $(LIBMERMOZ)
+
+robots: examples/robots.cpp
+	$(CC) $(OPT) $(INC) -o examples/$@ $^ $(LIBMERMOZ) $(LIB)

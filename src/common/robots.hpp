@@ -48,15 +48,16 @@ namespace common
 class Robots
 {
 public:
-  Robots (std::string& host): host(host), crawl_delay(4)
+  Robots (std::string host, std::string user_agent):
+    host(host), user_agent(user_agent), up_host(UrlParser(host)), crawl_delay(4)
   {
     std::ostringstream oss;
 
     long err;
-    if ((err = fetch_robots()) != 200)
+    if ((err = fetch_robots()) != CURLE_OK)
     {
       oss << "Could not fetch robots.txt for: " << host;
-      oss << " HTTP_ERROR(" << err << ")"; 
+      oss << " HTTP_ERROR(" << err << ")";
       print_error(oss.str());
       return;
     }
@@ -74,14 +75,19 @@ public:
 
 private:
   const std::string host;
+  const std::string user_agent;
   int crawl_delay; // milliseconds
 
   std::string robots_file;
 
+  UrlParser up_host;
+  std::vector<UrlParser> walls;
+  std::vector<UrlParser> doors;
+
   long fetch_robots();
   static size_t write_function (char* ptr, size_t size, size_t nmemb, void* userdata);
 
-  bool parse_file() {}
+  bool parse_file();
 }; // class Robots
 
 } // namespace common

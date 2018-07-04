@@ -65,11 +65,12 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
     this->scheme = rhs.scheme;
     return *this;
   }
-
+  
   // Relative path case
   if (this->scheme.empty() && this->authority.empty())
   {
     // L.H.S. has a relative path
+    std::cout << "lhs" << std::endl;
     this->scheme = rhs.scheme;
     this->authority = rhs.authority;
     this->user = rhs.user;
@@ -81,6 +82,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
   else if (rhs.scheme.empty() && rhs.authority.empty())
   {
     // R.H.S. has a relative path
+    std::cout << "rhs" << std::endl;
     this->path_tree.insert(this->path_tree.end(), rhs.path_tree.begin(), rhs.path_tree.end());
 
     this->query = rhs.query;
@@ -127,24 +129,56 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
   return *this;
 }
 
+std::ostream& operator<<(std::ostream& os, UrlParser& rhs)
+{
+  os << "scheme    " << rhs.scheme << std::endl;
+  os << "authority " << rhs.authority << std::endl;
+  os << "  user    " << rhs.user << std::endl;
+  os << "  pass    " << rhs.pass << std::endl;
+  os << "  port    " << rhs.port << std::endl;
+  os << "  domain  " << rhs.domain << std::endl;
+  os << "path      " << rhs.path << std::endl;
+  for (auto& elem : rhs.path_tree)
+  {
+    os << "  /       " << elem << std::endl;
+  }
+  os << "query     " << rhs.query << std::endl;
+  for (auto& elem : rhs.query_args)
+  {
+    os << "  &       " << elem << std::endl;
+  }
+  os << "fragment  " << rhs.fragment << std::endl;
+
+  return os;
+}
+
 void UrlParser::parse_scheme(std::streambuf* sb)
 {
   do_scheme = false;
-  bool has_separator = false;
-  bool has_authority = false;
 
   char c;
+
+  if ((c = sb->sbumpc()) == '/')
+  {
+    if ((c = sb->sbumpc()) == '/')
+    {
+      sb->pubseekoff(0, std::ios_base::beg);
+      do_authority = true;
+      return;
+    }
+
+    sb->pubseekoff(0, std::ios_base::beg);
+    do_path = true;
+    return;
+  }
+  sb->sungetc();
+
+  bool has_separator {false};
+
   while ((c = sb->sbumpc()) != EOF)
   {
     if (c != ':')
     {
-      if (c == '.') 
-      {
-        if (!((c = sb->sbumpc()) == '.' || c == '/' || c == EOF))
-        {
-          has_authority = true;
-        }
-      }
       scheme.push_back(c);
     }
     else
@@ -158,19 +192,13 @@ void UrlParser::parse_scheme(std::streambuf* sb)
 
   do_parse = c != EOF;
 
-  if ((!has_separator && !do_parse) ||
-      has_authority)
+  if (!has_separator && !do_parse)
   {
     // case of relative pathes
     sb->pubseekoff(0, std::ios_base::beg);
-    do_parse = true;
-
     scheme = "";
-
-    if (has_authority)
-      do_authority = true;
-    else
-      do_path = true;
+    do_parse = true;
+    do_path = true;
   }
   else
   {
@@ -255,6 +283,9 @@ void UrlParser::parse_path(std::streambuf* sb)
   int pos {0};
   int slash_pos {-1};
   char c;
+
+  while ((c = sb->sbumpc()) == '/') {}
+  sb->sungetc();
 
   while ((c = sb->sbumpc()) != EOF)
   {

@@ -51,9 +51,14 @@ public:
   UrlParser (std::string& url) :
     url(url), scheme_less(false), relative(false), 
     do_parse(true), do_scheme(true), do_authority(false),
-    do_path(false), do_query(false), do_fragment(false) {}
+    do_path(false), do_query(false), do_fragment(false)
+  {
+    parse();
+  }
 
   UrlParser& operator+=(UrlParser& rhs);
+
+  friend std::ostream& operator<<(std::ostream& os, UrlParser& rhs);
 
   void set_url(std::string& url) {this->url = url;}
 
