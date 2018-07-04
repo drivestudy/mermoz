@@ -92,12 +92,20 @@ void UrlParser::parse_scheme(std::streambuf* sb)
 {
   do_scheme = false;
   bool has_separator = false;
+  bool has_dot = false;
 
   char c;
   while ((c = sb->sbumpc()) != EOF)
   {
     if (c != ':')
+    {
+      if (c == '.')
+      {
+        has_dot = true;
+        break;
+      }
       scheme.push_back(c);
+    }
     else
     {
       has_separator = true;
@@ -109,14 +117,18 @@ void UrlParser::parse_scheme(std::streambuf* sb)
 
   do_parse = c != EOF;
 
-  if (!has_separator && !do_parse)
+  if ((!has_separator && !do_parse) || has_dot)
   {
     // case of relative pathes
     sb->pubseekoff(0, std::ios_base::beg);
     do_parse = true;
 
     scheme = "";
-    do_path = true;
+
+    if (has_dot)
+      do_authority = true;
+    else
+      do_path = true;
   }
   else
   {
@@ -133,6 +145,9 @@ void UrlParser::parse_authority(std::streambuf* sb)
   int domain_limit {0};
 
   char c;
+
+  while ((c = sb->sbumpc()) == '/') {}
+  sb->sungetc();
 
   while ((c = sb->sbumpc()) != EOF)
   {
