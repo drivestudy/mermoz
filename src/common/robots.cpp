@@ -26,13 +26,60 @@
  *
  */
 
-#ifndef MERMOZ_COMMON_H__
-#define MERMOZ_COMMON_H__
-
-#include "common/logs.hpp"
-#include "common/asyncqueue.hpp"
-#include "common/urlparser.hpp"
 #include "common/robots.hpp"
-#include "common/packer.hpp"
 
-#endif // MERMOZ_COMMON_H__
+namespace mermoz
+{
+namespace common
+{
+
+long Robots::fetch_robots()
+{
+  if (host.empty())
+  {
+    print_error("No host provided");
+    return -1;
+  }
+
+  CURL* curl;
+  CURLcode res;
+
+  curl = curl_easy_init();
+  long http_code = 0;
+
+  if (curl)
+  {
+    std::string robots_url = host;
+    robots_url.append("/robots.txt");
+
+    curl_easy_setopt(curl, CURLOPT_URL, robots_url.c_str());
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
+
+    robots_file = "";
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &robots_file);
+
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
+    res = curl_easy_perform(curl);
+
+    curl_easy_cleanup(curl);
+  }
+
+  return http_code;
+}
+
+size_t Robots::write_function (char* ptr, size_t size, size_t nmemb, void* userdata)
+{
+  std::string* content =
+    reinterpret_cast<std::string*>(userdata);
+
+  size_t relsize = size*nmemb;
+
+  content->append(ptr, relsize);
+
+  return relsize;
+}
+
+} // namespace common
+} // namespace mermoz

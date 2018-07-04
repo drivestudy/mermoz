@@ -26,8 +26,8 @@
  *
  */
 
-#ifndef MERMOZ_URLPARSER_H__
-#define MERMOZ_URLPARSER_H__
+#ifndef MERMOZ_ROBOTS_H__
+#define MERMOZ_ROBOTS_H__
 
 #include <iostream>
 #include <fstream>
@@ -35,70 +35,56 @@
 #include <string>
 #include <vector>
 
+#include <curl/curl.h>
+
+#include "common/urlparser.hpp"
+#include "common/logs.hpp"
+
 namespace mermoz
 {
 namespace common
 {
 
-class UrlParser
+class Robots
 {
 public:
-  UrlParser () :
-    url(""), scheme_less(false), relative(false), 
-    do_parse(true), do_scheme(true), do_authority(false),
-    do_path(false), do_query(false), do_fragment(false) {}
+  Robots (std::string& host): host(host), crawl_delay(4)
+  {
+    std::ostringstream oss;
 
-  UrlParser (std::string& url) :
-    url(url), scheme_less(false), relative(false), 
-    do_parse(true), do_scheme(true), do_authority(false),
-    do_path(false), do_query(false), do_fragment(false) {}
+    long err;
+    if ((err = fetch_robots()) != 200)
+    {
+      oss << "Could not fetch robots.txt for: " << host;
+      oss << " HTTP_ERROR(" << err << ")"; 
+      print_error(oss.str());
+      return;
+    }
 
-  UrlParser& operator+=(UrlParser& rhs);
+    if (!parse_file())
+    {
+      oss << "Could not parse robots.txt for: " << host;
+      print_error(oss.str());
+      return;
+    }
+  }
 
-  void set_url(std::string& url) {this->url = url;}
-
-  bool parse();
-
-  std::string get_clean_url(bool get_query = true, bool get_fragment = true);
-
-  bool scheme_less;
-  bool relative;
-
-  std::string url;
-
-  std::string scheme;
-
-  std::string authority;
-  std::string user;
-  std::string pass;
-  std::string domain;
-  std::string port;
-
-  std::string path;
-  std::vector<std::string> path_tree;
-
-  std::string query;
-  std::vector<std::string> query_args;
-
-  std::string fragment;
+  bool is_allowed(std::string& url) {}
+  bool is_allowed(UrlParser& up) {}
 
 private:
-  bool do_parse;
+  const std::string host;
+  int crawl_delay; // milliseconds
 
-  bool do_scheme;
-  bool do_authority;
-  bool do_path;
-  bool do_query;
-  bool do_fragment;
+  std::string robots_file;
 
-  void parse_scheme(std::streambuf* sb);
-  void parse_authority(std::streambuf* sb);
-  void parse_path(std::streambuf* sb);
-  void parse_query(std::streambuf* sb);
-  void parse_fragment(std::streambuf* sb);
-}; // class UrlParser
+  long fetch_robots();
+  static size_t write_function (char* ptr, size_t size, size_t nmemb, void* userdata);
+
+  bool parse_file() {}
+}; // class Robots
 
 } // namespace common
 } // namespace mermoz
 
-#endif // MERMOZ_URLPARSER_H__
+#endif // MERMOZ_ROBOTS_H__

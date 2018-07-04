@@ -15,7 +15,8 @@ dir:
 
 lib: $(LIBMERMOZ)
 
-BINLIST = src/common/urlparser.o src/common/packer.o
+BINLIST = src/common/urlparser.o src/common/packer.o src/common/robots.o\
+					src/common/logs.o
 
 %.o: %.cpp
 	$(CC) $(OPT) $(INC) -c -o $@ $^

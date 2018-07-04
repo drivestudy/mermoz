@@ -28,6 +28,9 @@ void fetcher(mc::async_queue<std::string>* url_queue,
       std::string content;
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
 
+      long http_code = 0;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+
       res = curl_easy_perform(curl);
 
       std::string message;
