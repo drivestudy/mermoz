@@ -150,6 +150,94 @@ std::ostream& operator<<(std::ostream& os, UrlParser& rhs)
   return os;
 }
 
+bool UrlParser::operator>(const UrlParser& rhs)
+{
+  if (authority.empty() || rhs.authority.empty())
+  {
+    throw std::invalid_argument("Cannot compare URLs without authority");
+  }
+
+  if (authority.compare(rhs.authority) != 0)
+  {
+    return false;
+  }
+  else
+  {
+    auto it_lhs = path_tree.begin();
+    auto it_rhs = rhs.path_tree.begin();
+
+    bool is_diff {false};
+
+    while (it_lhs != path_tree.end() &&
+           it_rhs != rhs.path_tree.end())
+    {
+      if (it_lhs->empty() ^ it_rhs->empty())
+      {
+        it_lhs--;
+        it_rhs--;
+        break;
+      }
+
+      if (it_lhs->compare(*it_rhs) != 0)
+      {
+        is_diff = true;
+        break;
+      }
+      else
+      {
+        it_lhs++;
+        it_rhs++;
+      }
+    }
+
+    return !is_diff && (it_lhs < path_tree.end());
+  }
+}
+
+bool UrlParser::operator>=(const UrlParser& rhs)
+{
+  if (authority.empty() || rhs.authority.empty())
+  {
+    throw std::invalid_argument("Cannot compare URLs without authority");
+  }
+
+  if (authority.compare(rhs.authority) != 0)
+  {
+    return false;
+  }
+  else
+  {
+    auto it_lhs = path_tree.begin();
+    auto it_rhs = rhs.path_tree.begin();
+
+    bool is_diff {false};
+
+    while (it_lhs != path_tree.end() &&
+           it_rhs != rhs.path_tree.end())
+    {
+      if (it_lhs->empty() ^ it_rhs->empty())
+      {
+        it_lhs--;
+        it_rhs--;
+        break;
+      }
+
+      if (it_lhs->compare(*it_rhs) != 0)
+      {
+        is_diff = true;
+        break;
+      }
+      else
+      {
+        it_lhs++;
+        it_rhs++;
+      }
+    }
+
+    return !is_diff;
+  }
+}
+
 void UrlParser::parse_scheme(std::streambuf* sb)
 {
   do_scheme = false;

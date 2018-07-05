@@ -43,7 +43,7 @@ namespace common
 class UrlParser
 {
 public:
-  UrlParser () : UrlParser("") {std::cout << "UrlParser empty const" << std::endl;}
+  UrlParser () : UrlParser("") {}
 
   UrlParser (std::string url) :
     url(url), scheme_less(false), relative(false),
@@ -58,7 +58,13 @@ public:
 
   friend std::ostream& operator<<(std::ostream& os, UrlParser& rhs);
 
-  void set_url(std::string url) {this->url = url;}
+  bool operator>(const UrlParser& rhs);
+  bool operator>=(const UrlParser& rhs);
+
+  void set_url(std::string url)
+  {
+    this->url = url;
+  }
 
   bool parse();
 

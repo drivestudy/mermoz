@@ -47,6 +47,30 @@ int main (int argc, char** argv)
     up_left.set_url(argv[1]);
     up_left.parse();
   }
+  else if (argc == 4 && std::strcmp(argv[2], "gt") == 0)
+  {
+    up_left.set_url(argv[1]);
+    up_left.parse();
+
+    up_right.set_url(argv[3]);
+    up_right.parse();
+
+    std::cout << (up_left > up_right ? "true" : "false") << std::endl;
+
+    return 0;
+  }
+  else if (argc == 4 && std::strcmp(argv[2], "geq") == 0)
+  {
+    up_left.set_url(argv[1]);
+    up_left.parse();
+
+    up_right.set_url(argv[3]);
+    up_right.parse();
+
+    std::cout << (up_left >= up_right ? "true" : "false") << std::endl;
+
+    return 0;
+  }
   else if (argc == 4 && std::strcmp(argv[2], "+") == 0)
   {
     up_left.set_url(argv[1]);
