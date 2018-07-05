@@ -24,6 +24,12 @@ Also it can handle URL addition if there is relative paths, such as:
 $ ./urlparser 'https://www.example.org/news/2017' + '../2016/june?os=linux#title'
 ```
 
+The best of the best, you can compare URLs as:
+```
+$ ./urlparser 'https://www.example.org/news/' gt 'https://www.example.org/news/2017'
+```
+For now only is implemented `>` coded as `gt` and `>=` coded as `geq` (Fortran-style :floppy_disk: ).
+
 ## Dependencies
 This list is more or less like a memo:
 - `boost/program_options` basics,
