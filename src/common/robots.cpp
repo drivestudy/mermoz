@@ -105,45 +105,39 @@ bool Robots::parse_file()
       continue;
     }
 
-    if (key.compare("User-agent:") == 0 && !read_settings)
+    if (key.compare("User-agent:") == 0 ||
+        key.compare("User-Agent:") == 0)
     {
       iss >> key;
       read_settings = key.compare("*") == 0 || key.compare(user_agent) == 0;
+
+      if (read_settings)
+        iss >> key;
     }
 
     if (read_settings)
     {
-      iss >> key;
-
       if (key.compare("Disallow:") == 0)
       {
         iss >> key;
-        std::cout << "disallow: " << key << std::endl;
         walls.push_back(UrlParser(key));
-        std::cout << "push" << std::endl;
-        *walls.end() += up_host;
-        std::cout << "add" << std::endl;
-        std::cout << *walls.end() << std::endl;
-        std::cout << "next..." << std::endl;
+        *(walls.end()-1) += up_host;
       }
       else if (key.compare("Allow:") == 0)
       {
         iss >> key;
-        std::cout << "allow: " << key << std::endl;
         doors.push_back(UrlParser(key));
-        std::cout << "push" << std::endl;
-        *doors.end() += up_host;
-        std::cout << "next..." << std::endl;
+        *(doors.end()-1) += up_host;
       }
       else if (key.compare("Crawl-delay:") == 0)
       {
         iss >> key;
-        std::cout << "delay: " << key << std::endl;
         crawl_delay = std::max(crawl_delay, std::atoi(key.c_str()));
-        std::cout << "next..." << std::endl;
       }
     }
   }
+
+  return true;
 }
 
 } // namespace common

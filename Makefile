@@ -34,3 +34,6 @@ urlparser: examples/urlparser.cpp
 
 robots: examples/robots.cpp
 	$(CC) $(OPT) $(INC) -o examples/$@ $^ $(LIBMERMOZ) $(LIB)
+
+clean:
+	rm -rf build src/common/*.o src/spider/*.o src/urlserver/*.o

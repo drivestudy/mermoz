@@ -65,12 +65,11 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
     this->scheme = rhs.scheme;
     return *this;
   }
-  
+
   // Relative path case
   if (this->scheme.empty() && this->authority.empty())
   {
     // L.H.S. has a relative path
-    std::cout << "lhs" << std::endl;
     this->scheme = rhs.scheme;
     this->authority = rhs.authority;
     this->user = rhs.user;
@@ -82,7 +81,6 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
   else if (rhs.scheme.empty() && rhs.authority.empty())
   {
     // R.H.S. has a relative path
-    std::cout << "rhs" << std::endl;
     this->path_tree.insert(this->path_tree.end(), rhs.path_tree.begin(), rhs.path_tree.end());
 
     this->query = rhs.query;

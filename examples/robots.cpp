@@ -30,40 +30,13 @@
 #include <string>
 #include <cstring>
 
-#include "common/urlparser.hpp"
+#include "common/common.hpp"
 
 namespace mc = mermoz::common;
 
 int main (int argc, char** argv)
 {
-  std::string url_left;
-  std::string url_right;
-
-  mc::UrlParser up_left;
-  mc::UrlParser up_right;
-
-  if (argc == 2)
-  {
-    up_left.set_url(argv[1]);
-    up_left.parse();
-  }
-  else if (argc == 4 && std::strcmp(argv[2], "+") == 0)
-  {
-    up_left.set_url(argv[1]);
-    up_left.parse();
-
-    up_right.set_url(argv[3]);
-    up_right.parse();
-
-    up_left += up_right;
-  }
-  else
-  {
-    std::cerr << "Unknown arguments. Exiting..." << std::endl;
-    exit(-1);
-  }
-
-  std::cout << up_left;
+  mc::Robots rb(argv[1], argv[2]);
 
   return 0;
 }

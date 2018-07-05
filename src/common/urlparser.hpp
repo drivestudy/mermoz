@@ -43,16 +43,14 @@ namespace common
 class UrlParser
 {
 public:
-  UrlParser () :
-    url(""), scheme_less(false), relative(false), 
-    do_parse(true), do_scheme(true), do_authority(false),
-    do_path(false), do_query(false), do_fragment(false) {}
+  UrlParser () : UrlParser("") {std::cout << "UrlParser empty const" << std::endl;}
 
-  UrlParser (std::string& url) :
-    url(url), scheme_less(false), relative(false), 
+  UrlParser (std::string url) :
+    url(url), scheme_less(false), relative(false),
     do_parse(true), do_scheme(true), do_authority(false),
     do_path(false), do_query(false), do_fragment(false)
   {
+    if (url.empty()) return;
     parse();
   }
 
@@ -60,16 +58,16 @@ public:
 
   friend std::ostream& operator<<(std::ostream& os, UrlParser& rhs);
 
-  void set_url(std::string& url) {this->url = url;}
+  void set_url(std::string url) {this->url = url;}
 
   bool parse();
 
   std::string get_clean_url(bool get_query = true, bool get_fragment = true);
 
+  std::string url;
+
   bool scheme_less;
   bool relative;
-
-  std::string url;
 
   std::string scheme;
 

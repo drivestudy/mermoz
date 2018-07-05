@@ -48,7 +48,7 @@ namespace common
 class Robots
 {
 public:
-  Robots (std::string host, std::string user_agent):
+  Robots (std::string host, std::string user_agent) :
     host(host), user_agent(user_agent), up_host(UrlParser(host)), crawl_delay(4)
   {
     std::ostringstream oss;
