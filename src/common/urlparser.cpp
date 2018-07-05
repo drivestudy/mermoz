@@ -163,6 +163,9 @@ bool UrlParser::operator>(const UrlParser& rhs)
   }
   else
   {
+    if (path_tree.size() <= rhs.path_tree.size())
+      return false;
+
     auto it_lhs = path_tree.begin();
     auto it_rhs = rhs.path_tree.begin();
 
@@ -207,6 +210,9 @@ bool UrlParser::operator>=(const UrlParser& rhs)
   }
   else
   {
+    if (path_tree.size() < rhs.path_tree.size())
+      return false;
+
     auto it_lhs = path_tree.begin();
     auto it_rhs = rhs.path_tree.begin();
 
@@ -236,6 +242,16 @@ bool UrlParser::operator>=(const UrlParser& rhs)
 
     return !is_diff;
   }
+}
+
+bool UrlParser::operator<(const UrlParser& rhs)
+{
+  return !(*this >= rhs);
+}
+
+bool UrlParser::operator<=(const UrlParser& rhs)
+{
+  return !(*this > rhs);
 }
 
 void UrlParser::parse_scheme(std::streambuf* sb)

@@ -28,7 +28,7 @@ The best of the best, you can compare URLs as:
 ```
 $ ./urlparser 'https://www.example.org/news/' gt 'https://www.example.org/news/2017'
 ```
-For now only is implemented `>` coded as `gt` and `>=` coded as `geq` (Fortran-style :floppy_disk: ).
+Is implemented `>, >=, <, <=` respectively coded as `gt, geq, lt, leq` (Fortran-style :floppy_disk: ).
 
 ## Dependencies
 This list is more or less like a memo:

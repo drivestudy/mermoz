@@ -55,3 +55,10 @@ query     os=linux
     &     os=linux
 fragment  title
 ```
+
+The best of the best, you can compare URLs as:
+```
+$ ./urlparser 'https://www.example.org/news/' gt 'https://www.example.org/news/2017'
+false
+```
+Is implemented `>, >=, <, <=` respectively coded as `gt, geq, lt, leq` (Fortran-style :floppy_disk: ).

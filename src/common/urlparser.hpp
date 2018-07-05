@@ -61,6 +61,9 @@ public:
   bool operator>(const UrlParser& rhs);
   bool operator>=(const UrlParser& rhs);
 
+  bool operator<(const UrlParser& rhs);
+  bool operator<=(const UrlParser& rhs);
+
   void set_url(std::string url)
   {
     this->url = url;
