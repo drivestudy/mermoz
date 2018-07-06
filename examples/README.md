@@ -64,7 +64,6 @@ $ ./urlparser 'https://www.example.org/news/' gt 'https://www.example.org/news/2
 false
 ```
 Is implemented `>, >=, <, <=` respectively coded as `gt, geq, lt, leq` (Fortran-style :floppy_disk: ).
-```
 
 ## Robots
 You can check if you are allowed to crawl some pages of website just by doing:
