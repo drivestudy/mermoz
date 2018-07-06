@@ -26,12 +26,41 @@
  *
  */
 
-#include "common/robots.hpp"
+#include "urlserver/robots.hpp"
 
 namespace mermoz
 {
 namespace common
 {
+
+bool Robots::is_allowed(UrlParser& up)
+{
+  /*
+   * First we check Allow rules
+   */
+  for (auto& door : doors)
+  {
+    if (up >= door)
+      return true;
+  }
+
+  /*
+   * Then we check Disallow rules
+   */
+  for (auto& wall : walls)
+  {
+    if (up >= wall)
+      return false;
+  }
+
+  return true;
+}
+
+bool Robots::is_allowed(std::string url)
+{
+  UrlParser up(url);
+  return is_allowed(up);
+}
 
 long Robots::fetch_robots()
 {
@@ -94,6 +123,7 @@ bool Robots::parse_file()
   std::string key;
 
   bool read_settings {false};
+  bool has_generic {false};
 
   while (!iss.eof())
   {
@@ -109,7 +139,26 @@ bool Robots::parse_file()
         key.compare("User-Agent:") == 0)
     {
       iss >> key;
-      read_settings = key.compare("*") == 0 || key.compare(user_agent) == 0;
+
+      if (key.compare("*") == 0)
+      {
+        read_settings = !has_generic &&
+          (walls.empty() || doors.empty());
+      }
+      else if (key.compare(user_agent) == 0)
+      {
+        if (has_generic)
+        {
+          walls.empty();
+          doors.empty();
+          has_generic = false;
+        }
+        read_settings = true;
+      }
+      else
+      {
+        read_settings = false;
+      }
 
       if (read_settings)
         iss >> key;
@@ -120,14 +169,12 @@ bool Robots::parse_file()
       if (key.compare("Disallow:") == 0)
       {
         iss >> key;
-        walls.push_back(UrlParser(key));
-        *(walls.end()-1) += up_host;
+        walls.push_back(UrlParser(key) + up_host);
       }
       else if (key.compare("Allow:") == 0)
       {
         iss >> key;
-        doors.push_back(UrlParser(key));
-        *(doors.end()-1) += up_host;
+        doors.push_back(UrlParser(key) + up_host);
       }
       else if (key.compare("Crawl-delay:") == 0)
       {

@@ -55,8 +55,9 @@ public:
   }
 
   UrlParser& operator+=(UrlParser& rhs);
+  UrlParser operator+(UrlParser& rhs);
 
-  friend std::ostream& operator<<(std::ostream& os, UrlParser& rhs);
+  friend std::ostream& operator<<(std::ostream& os, const UrlParser& rhs);
 
   bool operator>(const UrlParser& rhs);
   bool operator>=(const UrlParser& rhs);

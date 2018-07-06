@@ -1,6 +1,8 @@
 # Examples
 
-We present here some features of the examples available
+We present here some features of the examples available:
+- [URL parser](#url-parser)
+- [Robots](#robots)
 
 ## URL parser
 After doing `make` in the root directory, the binary will be
@@ -62,3 +64,23 @@ $ ./urlparser 'https://www.example.org/news/' gt 'https://www.example.org/news/2
 false
 ```
 Is implemented `>, >=, <, <=` respectively coded as `gt, geq, lt, leq` (Fortran-style :floppy_disk: ).
+```
+
+## Robots
+You can check if you are allowed to crawl some pages of website just by doing:
+```
+$ ./robots Website-Root User-Agent URL-To-Test
+```
+
+Then, test it:
+```
+$ ./robots 'https://www.facebook.com/' 'Applebot' 'https://www.facebook.com/u/'
+Allowed
+```
+congrats you can crawl it :tada:
+
+But sometimes, it's forbidden :warning:
+```
+$ ./robots 'https://www.facebook.com/' 'Applebot' 'https://www.facebook.com/ajax'
+Disallowed !!!
+```

@@ -33,30 +33,6 @@ namespace mermoz
 namespace common
 {
 
-bool UrlParser::parse()
-{
-  std::stringstream ss(url);
-  std::streambuf* sb = ss.rdbuf();
-
-  while (do_parse)
-  {
-    if (do_scheme)
-      parse_scheme(sb);
-    else if (do_authority)
-      parse_authority(sb);
-    else if (do_path)
-      parse_path(sb);
-    else if (do_query)
-      parse_query(sb);
-    else if (do_fragment)
-      parse_fragment(sb);
-    else
-      return false;
-  }
-
-  return true;
-}
-
 UrlParser& UrlParser::operator+=(UrlParser& rhs)
 {
   // Scheme-less case
@@ -74,6 +50,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
     this->authority = rhs.authority;
     this->user = rhs.user;
     this->pass = rhs.pass;
+    this->domain = rhs.domain;
     this->port = rhs.port;
 
     this->path_tree.insert(this->path_tree.begin(), rhs.path_tree.begin(), rhs.path_tree.end());
@@ -127,7 +104,14 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
   return *this;
 }
 
-std::ostream& operator<<(std::ostream& os, UrlParser& rhs)
+UrlParser UrlParser::operator+(UrlParser& rhs)
+{
+  UrlParser up(*this);
+  up += rhs;
+  return up;
+}
+
+std::ostream& operator<<(std::ostream& os, const UrlParser& rhs)
 {
   os << "scheme    " << rhs.scheme << std::endl;
   os << "authority " << rhs.authority << std::endl;
@@ -157,7 +141,7 @@ bool UrlParser::operator>(const UrlParser& rhs)
     throw std::invalid_argument("Cannot compare URLs without authority");
   }
 
-  if (authority.compare(rhs.authority) != 0)
+  if (domain.compare(rhs.domain) != 0)
   {
     return false;
   }
@@ -204,7 +188,7 @@ bool UrlParser::operator>=(const UrlParser& rhs)
     throw std::invalid_argument("Cannot compare URLs without authority");
   }
 
-  if (authority.compare(rhs.authority) != 0)
+  if (domain.compare(rhs.domain) != 0)
   {
     return false;
   }
@@ -254,26 +238,52 @@ bool UrlParser::operator<=(const UrlParser& rhs)
   return !(*this > rhs);
 }
 
+std::string get_clean_url(bool get_query, bool get_fragment)
+{
+}
+
+bool UrlParser::parse()
+{
+  std::stringstream ss(url);
+  std::streambuf* sb = ss.rdbuf();
+
+  while (do_parse)
+  {
+    if (do_scheme)
+      parse_scheme(sb);
+    else if (do_authority)
+      parse_authority(sb);
+    else if (do_path)
+      parse_path(sb);
+    else if (do_query)
+      parse_query(sb);
+    else if (do_fragment)
+      parse_fragment(sb);
+    else
+      return false;
+  }
+
+  return true;
+}
+
 void UrlParser::parse_scheme(std::streambuf* sb)
 {
   do_scheme = false;
 
   char c;
+  int nslash {0};
 
-  if ((c = sb->sbumpc()) == '/')
+  while ((c = sb->sbumpc()) == '/') { nslash++; }
+  if (nslash != 0)
   {
-    if ((c = sb->sbumpc()) == '/')
-    {
-      sb->pubseekoff(0, std::ios_base::beg);
-      do_authority = true;
-      return;
-    }
-
+    nslash >= 2 ? do_authority = true : do_path = true;
     sb->pubseekoff(0, std::ios_base::beg);
-    do_path = true;
     return;
   }
-  sb->sungetc();
+  else
+  {
+    sb->sungetc();
+  }
 
   bool has_separator {false};
 
@@ -286,7 +296,7 @@ void UrlParser::parse_scheme(std::streambuf* sb)
     else
     {
       has_separator = true;
-      while ((c = sb->sbumpc()) == '/') {}
+      while ((c = sb->sbumpc()) == '/') { nslash++; }
       sb->sungetc();
       break;
     }
@@ -304,7 +314,7 @@ void UrlParser::parse_scheme(std::streambuf* sb)
   }
   else
   {
-    do_authority = true;
+    nslash >= 2 ? do_authority = true : do_path = true;
   }
 }
 
@@ -313,7 +323,7 @@ void UrlParser::parse_authority(std::streambuf* sb)
   do_authority = false;
 
   int pos{0};
-  int semicolon_pos{-1};
+  int colon_pos{-1};
   int domain_limit {0};
 
   char c;
@@ -344,20 +354,20 @@ void UrlParser::parse_authority(std::streambuf* sb)
 
       if (c == ':')
       {
-        semicolon_pos = pos;
+        colon_pos = pos;
       }
       else if (c == '@')
       {
-        if (semicolon_pos > 0)
+        if (colon_pos > 0)
         {
-          user = authority.substr(0, semicolon_pos);
-          pass = authority.substr(semicolon_pos + 1, pos - semicolon_pos - 1);
+          user = authority.substr(0, colon_pos);
+          pass = authority.substr(colon_pos + 1, pos - colon_pos - 1);
         }
         else
         {
           user = authority.substr(0, pos);
         }
-        semicolon_pos = -1;
+        colon_pos = -1;
         domain_limit = pos + 1;
       }
 
@@ -365,10 +375,10 @@ void UrlParser::parse_authority(std::streambuf* sb)
     }
   }
 
-  if (semicolon_pos > 0)
+  if (colon_pos > 0)
   {
-    domain = authority.substr(domain_limit, semicolon_pos - domain_limit);
-    port = authority.substr(semicolon_pos + 1, pos - semicolon_pos - 1);
+    domain = authority.substr(domain_limit, colon_pos - domain_limit);
+    port = authority.substr(colon_pos + 1, pos - colon_pos - 1);
   }
   else
   {

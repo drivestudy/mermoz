@@ -70,8 +70,8 @@ public:
     }
   }
 
-  bool is_allowed(std::string& url) {}
-  bool is_allowed(UrlParser& up) {}
+  bool is_allowed(UrlParser& up);
+  bool is_allowed(std::string url);
 
 private:
   const std::string host;

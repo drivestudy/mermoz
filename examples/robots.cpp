@@ -31,12 +31,17 @@
 #include <cstring>
 
 #include "common/common.hpp"
+#include "urlserver/urlserver.hpp"
 
 namespace mc = mermoz::common;
 
 int main (int argc, char** argv)
 {
   mc::Robots rb(argv[1], argv[2]);
+
+  rb.is_allowed(argv[3]) ?
+    std::cout << "Allowed" << std::endl :
+    std::cout << "Disallowed !!!" << std::endl;
 
   return 0;
 }
