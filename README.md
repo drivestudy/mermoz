@@ -41,4 +41,4 @@ This list is more or less like a memo:
 Please first read [`CONTRIBUTING.md`](CONTRIBUTING.md) and propose what you want or you can fix or add functionalities detailed
 within [`TODO.md`](TODO.md).
 
-For any questions, comments, or collaborations, please use: **n.martin [at] qwantresearch [dot] com**.
+For any questions, comments, or collaborations, please use: **n.martin [at] qwantresearch [dot] com** or also [@stdthread](https://www.twitter.com/stdthread) on Twitter.
