@@ -1,5 +1,33 @@
-#ifndef ASYNCQUEUE_H__
-#define ASYNCQUEUE_H__
+/*
+ * MIT License
+ * 
+ * Copyright (c) 2018 Qwant Research 
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE. 
+ *
+ * Author:
+ * Noel Martin (n.martin@qwantresearch.com)
+ *
+ */
+
+#ifndef MERMOZ_ASYNCQUEUE_H__
+#define MERMOZ_ASYNCQUEUE_H__
 
 #include <queue>
 #include <mutex>
@@ -10,94 +38,94 @@ namespace mermoz
 namespace common
 {
 
-template<typename T>
-class async_queue
+template<typename ValueType>
+class AsyncQueue
 {
 public:
-  async_queue() {}
-  ~async_queue() {}
+  AsyncQueue() {}
+  ~AsyncQueue() {}
 
-  T& front();
-  T pop_out();
+  ValueType& front();
+  ValueType& back();
+
   void pop();
+  void pop(ValueType& val);
 
-  void push(const T& val);
+  void push(const ValueType& val);
 
-  size_t size();
-  bool empty();
+  size_t size() const;
+  bool empty() const;
 
 private:
-  size_t max_s;
-  std::queue<T> queue;
-  std::mutex mtx;
+  std::mutex mutex;
   std::condition_variable cond;
+
+  std::queue<ValueType> queue;
 };
 
-template<typename T>
-T async_queue<T>::pop_out()
+template<typename ValueType>
+ValueType& AsyncQueue<ValueType>::front()
 {
-  std::unique_lock<std::mutex> mlock(mtx);
-  while(queue.empty())
-  {
-    cond.wait(mlock);
-  }
-  T val = queue.front();
-  queue.pop();
-  cond.notify_one();
-  return val;
-}
+  std::unique_lock<std::mutex> mlock(mutex);
 
-template<typename T>
-T& async_queue<T>::front()
-{
-  std::unique_lock<std::mutex> mlock(mtx);
   while(queue.empty())
-  {
     cond.wait(mlock);
-  }
+
   return queue.front();
 }
 
-template<typename T>
-void async_queue<T>::pop()
+template<typename ValueType>
+void AsyncQueue<ValueType>::pop()
 {
-  std::unique_lock<std::mutex> mlock(mtx);
+  std::unique_lock<std::mutex> mlock(mutex);
+
   while(queue.empty())
-  {
     cond.wait(mlock);
-  }
+
   queue.pop();
+
   cond.notify_one();
 }
 
-template<typename T>
-void async_queue<T>::push(const T& val)
+template<typename ValueType>
+void AsyncQueue<ValueType>::pop(ValueType& val)
 {
-  std::unique_lock<std::mutex> mlock(mtx);
+  std::unique_lock<std::mutex> mlock(mutex);
+
+  while(queue.empty())
+    cond.wait(mlock);
+
+  val = queue.front();
+  queue.pop();
+
+  cond.notify_one();
+}
+
+template<typename ValueType>
+void AsyncQueue<ValueType>::push(const ValueType& val)
+{
+  std::unique_lock<std::mutex> mlock(mutex);
+
   queue.push(val);
+
   cond.notify_one();
-  mlock.unlock();
 }
 
-template<typename T>
-size_t async_queue<T>::size()
+template<typename ValueType>
+size_t AsyncQueue<ValueType>::size() const
 {
-  std::unique_lock<std::mutex> mlock(mtx);
-  size_t s = queue.size();
-  mlock.unlock();
-  return s;
+  std::unique_lock<std::mutex> mlock(mutex);
+  return queue.size();
 }
 
-template<typename T>
-bool async_queue<T>::empty()
+template<typename ValueType>
+bool AsyncQueue<ValueType>::empty() const
 {
-  std::unique_lock<std::mutex> mlock(mtx);
-  bool e = queue.empty();
-  mlock.unlock();
-  return e;
+  std::unique_lock<std::mutex> mlock(mutex);
+  return queue.empty();
 }
 
 } // namespace common
 } // namespace mermoz
 
-#endif // ASYNCQUEUE_H__
+#endif // MERMOZ_ASYNCQUEUE_H__
