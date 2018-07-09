@@ -70,9 +70,9 @@ public:
     this->url = url;
   }
 
-  bool parse();
+  std::string get_url(bool get_query = true, bool get_fragment = true);
 
-  std::string get_clean_url(bool get_query = true, bool get_fragment = true);
+  bool parse();
 
   std::string url;
 

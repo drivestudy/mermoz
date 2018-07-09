@@ -37,20 +37,24 @@
 
 #include <curl/curl.h>
 
-#include "common/urlparser.hpp"
-#include "common/logs.hpp"
+#include "common/common.hpp"
 
 namespace mermoz
 {
-namespace common
+namespace urlserver
 {
 
 class Robots
 {
 public:
-  Robots (std::string host, std::string user_agent) :
-    host(host), user_agent(user_agent), up_host(UrlParser(host)), crawl_delay(4)
+  Robots() : Robots("","") {}
+
+  Robots(std::string host, std::string user_agent) :
+    host(host), user_agent(user_agent), up_host(mermoz::common::UrlParser(host)), crawl_delay(4)
   {
+    if (host.empty())
+      return;
+
     std::ostringstream oss;
 
     long err;
@@ -58,19 +62,19 @@ public:
     {
       oss << "Could not fetch robots.txt for: " << host;
       oss << " HTTP_ERROR(" << err << ")";
-      print_error(oss.str());
+      mermoz::common::print_error(oss.str());
       return;
     }
 
     if (!parse_file())
     {
       oss << "Could not parse robots.txt for: " << host;
-      print_error(oss.str());
+      mermoz::common::print_error(oss.str());
       return;
     }
   }
 
-  bool is_allowed(UrlParser& up);
+  bool is_allowed(mermoz::common::UrlParser& up);
   bool is_allowed(std::string url);
 
 private:
@@ -80,9 +84,9 @@ private:
 
   std::string robots_file;
 
-  UrlParser up_host;
-  std::vector<UrlParser> walls;
-  std::vector<UrlParser> doors;
+  mermoz::common::UrlParser up_host;
+  std::vector<mermoz::common::UrlParser> walls;
+  std::vector<mermoz::common::UrlParser> doors;
 
   long fetch_robots();
   static size_t write_function (char* ptr, size_t size, size_t nmemb, void* userdata);
@@ -90,7 +94,7 @@ private:
   bool parse_file();
 }; // class Robots
 
-} // namespace common
+} // namespace urlserver
 } // namespace mermoz
 
 #endif // MERMOZ_ROBOTS_H__

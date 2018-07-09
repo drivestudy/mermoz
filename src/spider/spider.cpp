@@ -26,104 +26,44 @@
  *
  */
 
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <thread>
-#include <initializer_list>
-
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
-
-#include "common/common.hpp"
-namespace mc = mermoz::common;
 
 #include "spider/spider.hpp"
-namespace ms = mermoz::spider;
 
-int main (int argc, char** argv)
+namespace mc = mermoz::common;
+
+namespace mermoz
 {
-  po::options_description desc("Allowed options");
-  desc.add_options()
-  ("help", "displays this message")
-  ("fetchers", po::value<int>(), "number of fetchers")
-  ("parsers", po::value<int>(), "number of parsers")
-  ("kafka-file", po::value<std::string>(), "config file for the Kafka consumer & producer")
-  ;
+namespace spider
+{
 
-  po::variables_map vmap;
-  po::store(po::parse_command_line(argc, argv, desc), vmap);
-  po::notify(vmap);
-
-  if (vmap.count("help"))
-  {
-    std::cout << desc << std::endl;
-    return 1;
-  }
-
-  bool status = true;
-
-  mc::AsyncQueue<std::string> url_queue;
-  mc::AsyncQueue<std::string> content_queue;
+void spider(mermoz::common::AsyncQueue<std::string>* url_queue,
+            mermoz::common::AsyncQueue<std::string>* content_queue,
+            int num_threads_fetchers,
+            int num_threads_parsers,
+            std::string user_agent,
+            bool* status)
+{
   mc::AsyncQueue<std::string> parsed_queue;
 
   std::vector<std::thread> fetchers;
-
-  if (vmap.count("fetchers"))
-  {
-    for (int i = 0; i < vmap["fetchers"].as<int>(); i++)
-    {
-      fetchers.push_back(std::thread(ms::fetcher, &url_queue, &content_queue, &status));
-    }
-  }
-  else
-  {
-    std::cout << "The number of fetchers must be declared" << std::endl;
-    return 1;
-  }
+  for (int i = 0; i < num_threads_fetchers; i++)
+    fetchers.push_back(std::thread(fetcher, url_queue, &parsed_queue, user_agent, status));
 
   std::vector<std::thread> parsers;
+  for (int i = 0; i < num_threads_parsers; i++)
+    parsers.push_back(std::thread(parser, &parsed_queue, content_queue, status));
 
-  if (vmap.count("parsers"))
-  {
-    for (int i = 0; i < vmap["parsers"].as<int>(); i++)
-    {
-      parsers.push_back(std::thread(ms::parser, &content_queue, &parsed_queue, &status));
-    }
-  }
-  else
-  {
-    std::cout << "The number of parsers must be declared" << std::endl;
-    return 1;
-  }
+  for (auto& t : fetchers)
+    t.join();
 
-  std::ifstream urlfile("urls.txt");
-  while (urlfile.good())
-  {
-    std::string url;
-    urlfile >> url;
-    url_queue.push(url);
-  }
-
-  std::ofstream ofp ("parsed.txt");
-  while (status)
-  {
-    std::string message;
-    parsed_queue.pop(message);
-
-    std::string url;
-    std::string text;
-    std::string links;
-
-    mc::unpack(message, {&url, &text, &links});
-
-    ofp << "URL : " << url << std::endl;
-    ofp << "TEXT : " << text << std::endl;
-    ofp << "LINKS : " << links << std::endl;
-  }
-
-  return 0;
+  for (auto& t : parsers)
+    t.join();
 }
 
+} // namespace spider
+} // namespace mermoz

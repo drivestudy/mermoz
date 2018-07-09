@@ -28,12 +28,14 @@
 
 #include "urlserver/robots.hpp"
 
+namespace mc = mermoz::common;
+
 namespace mermoz
 {
-namespace common
+namespace urlserver
 {
 
-bool Robots::is_allowed(UrlParser& up)
+bool Robots::is_allowed(mc::UrlParser& up)
 {
   /*
    * First we check Allow rules
@@ -58,7 +60,7 @@ bool Robots::is_allowed(UrlParser& up)
 
 bool Robots::is_allowed(std::string url)
 {
-  UrlParser up(url);
+  mc::UrlParser up(url);
   return is_allowed(up);
 }
 
@@ -66,7 +68,7 @@ long Robots::fetch_robots()
 {
   if (host.empty())
   {
-    print_error("No host provided");
+    mc::print_error("No host provided");
     return -1;
   }
 
@@ -114,7 +116,7 @@ bool Robots::parse_file()
 {
   if (robots_file.empty())
   {
-    print_error("Nothing to parse.");
+    mc::print_error("Nothing to parse.");
     return false;
   }
 
@@ -169,12 +171,12 @@ bool Robots::parse_file()
       if (key.compare("Disallow:") == 0)
       {
         iss >> key;
-        walls.push_back(UrlParser(key) + up_host);
+        walls.push_back(mc::UrlParser(key) + up_host);
       }
       else if (key.compare("Allow:") == 0)
       {
         iss >> key;
-        doors.push_back(UrlParser(key) + up_host);
+        doors.push_back(mc::UrlParser(key) + up_host);
       }
       else if (key.compare("Crawl-delay:") == 0)
       {
@@ -187,5 +189,5 @@ bool Robots::parse_file()
   return true;
 }
 
-} // namespace common
+} // namespace urlserver
 } // namespace mermoz

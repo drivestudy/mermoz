@@ -33,7 +33,7 @@
 #include "common/common.hpp"
 #include "urlserver/urlserver.hpp"
 
-namespace mc = mermoz::common;
+namespace mc = mermoz::urlserver;
 
 int main (int argc, char** argv)
 {

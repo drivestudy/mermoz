@@ -1,6 +1,13 @@
 # Mermoz :airplane:
 Web crawler for multi-threaded computers
 
+## Start it
+Compile the code by doing `make` and then launch it:
+```
+$ cd build
+$ ./mermoz --parsers N --fetchers M --seed URL --user-agent UA
+```
+
 ## Examples
 
 The detailed readme of examples is located within [`examples/README.md`](examples/README.md).

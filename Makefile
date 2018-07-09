@@ -1,14 +1,14 @@
 CC = g++
-#OPT = -std=c++11 -O3 -pthread
-OPT = -std=c++11 -g -pthread
+OPT = -std=c++11 -O3 -pthread
+#OPT = -std=c++11 -g -pthread
 INC = -I src/.
 LIB = -lgumbo -lboost_program_options -lcurl
 
 LIBMERMOZ = build/libmermoz.a
 
-all: mermoz examples
+all: build examples
 
-mermoz: dir lib spider
+build: dir lib mermoz
 
 dir:
 	mkdir -p build
@@ -16,7 +16,8 @@ dir:
 lib: $(LIBMERMOZ)
 
 BINLIST = src/common/urlparser.o src/common/packer.o src/common/logs.o\
-					src/urlserver/robots.o
+					src/urlserver/urlserver.o src/urlserver/robots.o\
+					src/spider/spider.o src/spider/parser.o src/spider/fetcher.o
 
 %.o: %.cpp
 	$(CC) $(OPT) $(INC) -c -o $@ $^
@@ -24,7 +25,7 @@ BINLIST = src/common/urlparser.o src/common/packer.o src/common/logs.o\
 $(LIBMERMOZ): $(BINLIST)
 	ar rcs $@ $^
 
-spider: src/spider/spider.cpp src/spider/fetcher.cpp src/spider/parser.cpp
+mermoz: src/mermoz.cpp
 	$(CC) $(OPT) $(INC) -o build/$@ $^ $(LIBMERMOZ) $(LIB) 
 
 examples: urlparser robots

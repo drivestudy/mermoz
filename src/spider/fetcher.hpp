@@ -47,6 +47,7 @@ namespace spider
 
 void fetcher(mermoz::common::AsyncQueue<std::string>* url_queue,
              mermoz::common::AsyncQueue<std::string>* content_queue,
+             std::string user_agent,
              bool* do_fetch);
 
 size_t write_function (char* ptr, size_t size, size_t nmemb, void* userdata);

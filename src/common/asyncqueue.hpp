@@ -84,6 +84,7 @@ void AsyncQueue<ValueType>::pop()
 
   queue.pop();
 
+  mlock.unlock();
   cond.notify_one();
 }
 
@@ -98,6 +99,7 @@ void AsyncQueue<ValueType>::pop(ValueType& val)
   val = queue.front();
   queue.pop();
 
+  mlock.unlock();
   cond.notify_one();
 }
 
@@ -108,6 +110,7 @@ void AsyncQueue<ValueType>::push(const ValueType& val)
 
   queue.push(val);
 
+  mlock.unlock();
   cond.notify_one();
 }
 

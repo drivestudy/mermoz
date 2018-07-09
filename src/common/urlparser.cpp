@@ -238,8 +238,37 @@ bool UrlParser::operator<=(const UrlParser& rhs)
   return !(*this > rhs);
 }
 
-std::string get_clean_url(bool get_query, bool get_fragment)
+std::string UrlParser::get_url(bool get_query, bool get_fragment)
 {
+  std::string url;
+
+  url.append(scheme).append("://");
+  url.append(authority).append("/");
+
+  for (auto& elem : path_tree)
+    if (!elem.empty())
+      url.append(elem).append("/");
+
+  url.pop_back(); // remove last '/'
+
+  if (get_query)
+  {
+    if (!query.empty() && !query_args.empty())
+    {
+      url.append("?");
+      for (auto& elem : query_args)
+        if (!elem.empty())
+          url.append(elem).append("&");
+
+      url.pop_back(); // remove last '&'
+    }
+  }
+
+  if (get_fragment)
+    if (!fragment.empty())
+      fragment.append("#").append(fragment);
+
+  return url;
 }
 
 bool UrlParser::parse()
