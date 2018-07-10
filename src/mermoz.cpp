@@ -73,7 +73,11 @@ int main (int argc, char** argv)
 
   mc::AsyncQueue<std::string> content_queue;
 
-  std::thread urlserver(mu::urlserver, &content_queue, &url_queue, &status);
+  std::thread urlserver(mu::urlserver,
+                        &content_queue,
+                        &url_queue,
+                        vmap["user-agent"].as<std::string>(),
+                        &status);
 
   std::thread spider(ms::spider,
                      &url_queue,

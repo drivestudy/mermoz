@@ -48,20 +48,28 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
     std::string content;
     std::string http_status;
     mc::unpack(message, {&url, &content, &http_status});
-    std::cout << "parsing " << url << std::endl;
+   
+    if (http_status.compare("0") == 0)
+    {
+      GumboOutput* output = gumbo_parse(content.c_str());
 
-    GumboOutput* output = gumbo_parse(content.c_str());
+      std::string text = get_text(output->root);
+      text_cleaner(text);
 
-    std::string text = get_text(output->root);
-    text_cleaner(text);
+      std::string links = get_links(output->root);
 
-    std::string links = get_links(output->root);
+      mc::pack(message, {&url, &text, &links, &http_status});
 
-    mc::pack(message, {&url, &text, &links, &http_status});
+      parsed_queue->push(message);
 
-    parsed_queue->push(message);
-
-    gumbo_destroy_output(&kGumboDefaultOptions, output);
+      gumbo_destroy_output(&kGumboDefaultOptions, output);
+    }
+    else
+    {
+      std::string text, links;
+      mc::pack(message, {&url, &text, &links, &http_status});
+      parsed_queue->push(message);
+    }
   }
 }
 

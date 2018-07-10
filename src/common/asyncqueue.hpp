@@ -53,7 +53,7 @@ public:
 
   void push(const ValueType& val);
 
-  size_t size() const;
+  size_t size();
   bool empty() const;
 
 private:
@@ -115,7 +115,7 @@ void AsyncQueue<ValueType>::push(const ValueType& val)
 }
 
 template<typename ValueType>
-size_t AsyncQueue<ValueType>::size() const
+size_t AsyncQueue<ValueType>::size()
 {
   std::unique_lock<std::mutex> mlock(mutex);
   return queue.size();

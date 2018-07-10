@@ -72,44 +72,13 @@ long Robots::fetch_robots()
     return -1;
   }
 
-  CURL* curl;
-  CURLcode res;
+  std::string robots_url = host;
+  robots_url.append("/robots.txt");
 
-  curl = curl_easy_init();
-  long http_code = 0;
-
-  if (curl)
-  {
-    std::string robots_url = host;
-    robots_url.append("/robots.txt");
-
-    curl_easy_setopt(curl, CURLOPT_URL, robots_url.c_str());
-
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
-
-    robots_file = "";
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &robots_file);
-
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-
-    res = curl_easy_perform(curl);
-
-    curl_easy_cleanup(curl);
-  }
+  long http_code = mc::http_fetch(robots_url, robots_file, 5L, user_agent_full);
+  mc::print_log(robots_url);
 
   return http_code;
-}
-
-size_t Robots::write_function (char* ptr, size_t size, size_t nmemb, void* userdata)
-{
-  std::string* content =
-    reinterpret_cast<std::string*>(userdata);
-
-  size_t relsize = size*nmemb;
-
-  content->append(ptr, relsize);
-
-  return relsize;
 }
 
 bool Robots::parse_file()
@@ -122,32 +91,29 @@ bool Robots::parse_file()
 
   std::istringstream iss(robots_file);
 
-  std::string key;
-
   bool read_settings {false};
   bool has_generic {false};
 
+  std::string line;
+
   while (!iss.eof())
   {
-    iss >> key;
+    std::getline(iss, line);
 
-    if (key[0] == '#')
+    if (line[0] == '#')
     {
-      iss.ignore(1024, '\n');
       continue;
     }
 
-    if (key.compare("User-agent:") == 0 ||
-        key.compare("User-Agent:") == 0)
+    if (line.find("User-agent:") != std::string::npos ||
+        line.find("User-Agent:") != std::string::npos)
     {
-      iss >> key;
-
-      if (key.compare("*") == 0)
+      if (line.find("*") != std::string::npos)
       {
         read_settings = !has_generic &&
           (walls.empty() || doors.empty());
       }
-      else if (key.compare(user_agent) == 0)
+      else if (line.find(user_agent) != std::string::npos)
       {
         if (has_generic)
         {
@@ -161,27 +127,24 @@ bool Robots::parse_file()
       {
         read_settings = false;
       }
-
-      if (read_settings)
-        iss >> key;
     }
 
     if (read_settings)
     {
-      if (key.compare("Disallow:") == 0)
+      if (line.find("Disallow:") != std::string::npos)
       {
-        iss >> key;
-        walls.push_back(mc::UrlParser(key) + up_host);
+        if (line.size() > 10)
+          walls.push_back(mc::UrlParser(line.substr(10)) + up_host);
       }
-      else if (key.compare("Allow:") == 0)
+      else if (line.find("Allow:") != std::string::npos)
       {
-        iss >> key;
-        doors.push_back(mc::UrlParser(key) + up_host);
+        if (line.size() > 8)
+          doors.push_back(mc::UrlParser(line.substr(8)) + up_host);
       }
-      else if (key.compare("Crawl-delay:") == 0)
+      else if (line.find("Crawl-delay:") != std::string::npos)
       {
-        iss >> key;
-        crawl_delay = std::max(crawl_delay, std::atoi(key.c_str()));
+        if (line.size() > 13)
+          crawl_delay = std::max(crawl_delay, std::atoi(line.substr(13).c_str()));
       }
     }
   }

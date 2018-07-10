@@ -47,10 +47,11 @@ namespace urlserver
 class Robots
 {
 public:
-  Robots() : Robots("","") {}
+  Robots() : Robots("","","") {}
 
-  Robots(std::string host, std::string user_agent) :
-    host(host), user_agent(user_agent), up_host(mermoz::common::UrlParser(host)), crawl_delay(4)
+  Robots(std::string host, std::string user_agent, std::string user_agent_full) :
+    host(host), user_agent(user_agent), user_agent_full(user_agent_full),
+    up_host(mermoz::common::UrlParser(host)), crawl_delay(4)
   {
     if (host.empty())
       return;
@@ -80,6 +81,7 @@ public:
 private:
   const std::string host;
   const std::string user_agent;
+  const std::string user_agent_full;
   int crawl_delay; // milliseconds
 
   std::string robots_file;
@@ -89,7 +91,6 @@ private:
   std::vector<mermoz::common::UrlParser> doors;
 
   long fetch_robots();
-  static size_t write_function (char* ptr, size_t size, size_t nmemb, void* userdata);
 
   bool parse_file();
 }; // class Robots

@@ -35,6 +35,8 @@
 #include <string>
 #include <vector>
 
+#include "common/logs.hpp"
+
 namespace mermoz
 {
 namespace common
@@ -73,6 +75,8 @@ public:
   std::string get_url(bool get_query = true, bool get_fragment = true);
 
   bool parse();
+
+  void exchange(std::string scheme1, std::string scheme2);
 
   std::string url;
 

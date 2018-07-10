@@ -42,52 +42,19 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
 {
   while (*do_fetch)
   {
-    CURL* curl;
-    CURLcode res;
+    std::string url;
+    url_queue->pop(url);
 
-    curl = curl_easy_init();
+    std::string content;
+    long http_code = mc::http_fetch(url, content, 5L, user_agent);
 
-    if (curl)
-    {
-      std::string url;
-      url_queue->pop(url);
-      std::cout << "fecthing " << url << std::endl;
+    std::string http_code_string(std::to_string(http_code));
 
-      curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    std::string message;
+    mc::pack(message, {&url, &content, &http_code_string});
 
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
-
-      curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
-
-      std::string content;
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
-
-      long http_code = 0;
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-
-      res = curl_easy_perform(curl);
-
-      std::string http_status(http_code == CURLE_OK ? "200" : std::to_string(http_code));
-      std::string message;
-      mc::pack(message, {&url, &content, &http_status});
-
-      content_queue->push(message);
-
-      curl_easy_cleanup(curl);
-    }
+    content_queue->push(message);
   }
-}
-
-size_t write_function (char* ptr, size_t size, size_t nmemb, void* userdata)
-{
-  std::string* content =
-    reinterpret_cast<std::string*>(userdata);
-
-  size_t relsize = size*nmemb;
-
-  content->append(ptr, relsize);
-
-  return relsize;
 }
 
 } // namespace spider

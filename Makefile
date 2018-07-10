@@ -16,7 +16,7 @@ dir:
 lib: $(LIBMERMOZ)
 
 BINLIST = src/common/urlparser.o src/common/packer.o src/common/logs.o\
-					src/urlserver/urlserver.o src/urlserver/robots.o\
+					src/common/httpfetch.o src/urlserver/urlserver.o src/urlserver/robots.o\
 					src/spider/spider.o src/spider/parser.o src/spider/fetcher.o
 
 %.o: %.cpp

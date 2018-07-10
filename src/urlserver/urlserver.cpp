@@ -29,6 +29,7 @@
 #include "urlserver/urlserver.hpp"
 
 #include <curl/curl.h>
+#include <ctime>
 
 namespace mc = mermoz::common;
 
@@ -39,16 +40,18 @@ namespace urlserver
 
 void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
                mermoz::common::AsyncQueue<std::string>* url_queue,
+               std::string user_agent,
                bool* status)
 {
   std::set<std::string> visited;
   std::map<std::string, Robots> robots;
   size_t counter {0};
 
+  std::ofstream ofp("log.out");
+
   while (*status)
   {
     std::string content;
-    std::cout << "wait..." << std::endl;
     content_queue->pop(content);
 
     std::string url;
@@ -56,12 +59,17 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     std::string links;
     std::string http_status;
     mc::unpack(content, {&url, &text, &links, &http_status});
-    std::cout << "counter " << counter++ << std::endl;
-    std::cout << "treating " << url << std::endl;
+
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+
+    ofp << "PAGE " << std::put_time(&tm, "%T") << std::endl;
+    ofp << "URL:    " << url << std::endl;
+    ofp << "TEXT_S: " << text.size() << std::endl;
 
     mc::UrlParser root(url);
 
-    if (http_status.compare("200") != 0)
+    if (http_status.compare("0") != 0)
     {
       continue;
     }
@@ -77,21 +85,26 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     {
       if ((c == ' ' || c == ',') && !link.empty())
       {
-        mc::UrlParser up(link);
-        if (up.scheme.empty() || up.authority.empty())
+        if (link.find("javascript") == std::string::npos
+            && link.find("mailto") == std::string::npos
+            && link.find(",") == std::string::npos)
         {
-          try
+          mc::UrlParser up(link);
+          if (up.scheme.empty() || up.authority.empty())
           {
-            outlinks.push_back(up + root);
+            try
+            {
+              outlinks.push_back(up + root);
+            }
+            catch(...)
+            {
+              std::cout << "cannot add " << link << std::endl;
+            }
           }
-          catch(...)
-          {
-            std::cout << "cannot add " << link << std::endl;
-          }
-        }
-        else
-          outlinks.push_back(up);
+          else
+            outlinks.push_back(up);
 
+        }
         link = {""};
         continue;
       }
@@ -99,13 +112,15 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       link.push_back(c);
     }
 
+    long cnt {0};
     for (auto& outlink : outlinks)
     {
       std::string clean_url = outlink.get_url(false, false);
       if (visited.find(clean_url) == visited.end())
       {
         if (robots.find(outlink.domain) == robots.end())
-          robots.insert(std::pair<std::string, Robots>(outlink.scheme + "://" + outlink.domain, Robots(outlink.domain, "Qwantify")));
+          robots.insert(std::pair<std::string, Robots>(outlink.domain,
+                        Robots(outlink.domain, "Qwantify", user_agent)));
 
         bool is_allowed;
 
@@ -119,10 +134,14 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         }
 
         if (is_allowed)
+        {
           url_queue->push(clean_url);
+          cnt++;
+        }
       }
     }
-    std::cout << "new loop..." << std::endl;
+
+    ofp << "LINKS:  " << cnt << "/" << outlinks.size() << std::endl << std::endl;
   }
 }
 

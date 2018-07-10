@@ -271,6 +271,16 @@ std::string UrlParser::get_url(bool get_query, bool get_fragment)
   return url;
 }
 
+void UrlParser::exchange(std::string scheme1, std::string scheme2)
+{
+  if (scheme.compare(scheme1) == 0)
+    scheme = scheme2;
+  else if (scheme.compare(scheme2) == 0)
+    scheme = scheme1;
+  else
+    print_warning("Switch-scheme not handled by UrlParser");
+}
+
 bool UrlParser::parse()
 {
   std::stringstream ss(url);
@@ -315,10 +325,16 @@ void UrlParser::parse_scheme(std::streambuf* sb)
   }
 
   bool has_separator {false};
+  bool has_dot {false};
 
   while ((c = sb->sbumpc()) != EOF)
   {
-    if (c != ':')
+    if (c == '.')
+    {
+      has_dot = true;
+      break;
+    }
+    else if (c != ':')
     {
       scheme.push_back(c);
     }
@@ -333,7 +349,15 @@ void UrlParser::parse_scheme(std::streambuf* sb)
 
   do_parse = c != EOF;
 
-  if (!has_separator && !do_parse)
+  if (has_dot)
+  {
+    // case of scheme-less pathes
+    sb->pubseekoff(0, std::ios_base::beg);
+    scheme = "";
+    do_parse = true;
+    do_authority = true;
+  }
+  else if (!has_separator && !do_parse)
   {
     // case of relative pathes
     sb->pubseekoff(0, std::ios_base::beg);
@@ -404,6 +428,20 @@ void UrlParser::parse_authority(std::streambuf* sb)
     }
   }
 
+  do_parse = c != EOF;
+
+  if (authority.compare(".") == 0)
+  {
+    authority = "";
+  }
+  else if (authority.compare("..") == 0)
+  {
+    authority = "";
+    sb->pubseekoff(0, std::ios_base::beg);
+    do_parse = true;
+    do_path = true;
+  }
+
   if (colon_pos > 0)
   {
     domain = authority.substr(domain_limit, colon_pos - domain_limit);
@@ -413,8 +451,6 @@ void UrlParser::parse_authority(std::streambuf* sb)
   {
     domain = authority.substr(domain_limit, pos - domain_limit);
   }
-
-  do_parse = c != EOF;
 }
 
 void UrlParser::parse_path(std::streambuf* sb)
