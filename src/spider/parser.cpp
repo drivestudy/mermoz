@@ -37,6 +37,7 @@ namespace spider
 
 void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
             mermoz::common::AsyncQueue<std::string>* parsed_queue,
+            std::atomic<uint64_t>* nparsed,
             bool* status)
 {
   while (*status)
@@ -70,6 +71,8 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       mc::pack(message, {&url, &text, &links, &http_status});
       parsed_queue->push(message);
     }
+
+    ++(*nparsed);
   }
 }
 

@@ -26,11 +26,14 @@
  *
  */
 
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <thread>
+#include <atomic>
+#include <unistd.h>
 
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
@@ -79,13 +82,35 @@ int main (int argc, char** argv)
                         vmap["user-agent"].as<std::string>(),
                         &status);
 
+  std::atomic<uint64_t> nfetched;
+  nfetched = 0;
+
+  std::atomic<uint64_t> nparsed;
+  nparsed = 0;
+
   std::thread spider(ms::spider,
                      &url_queue,
                      &content_queue,
                      vmap["fetchers"].as<int>(),
                      vmap["parsers"].as<int>(),
                      vmap["user-agent"].as<std::string>(),
+                     &nfetched,
+                     &nparsed,
                      &status);
+
+  std::ofstream ofp("log.out");
+  while (status)
+  {
+    sleep(2);
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+
+    ofp << std::put_time(&tm, "%T") << std::endl;
+    ofp << "URLs " << url_queue.size() << std::endl;
+    ofp << "CONT " << content_queue.size() << std::endl;
+    ofp << "FETC " << nfetched << std::endl;
+    ofp << "PARS " << nparsed << std::endl << std::endl;
+  }
 
   urlserver.join();
   spider.join();

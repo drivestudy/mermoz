@@ -47,8 +47,6 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   std::map<std::string, Robots> robots;
   size_t counter {0};
 
-  std::ofstream ofp("log.out");
-
   while (*status)
   {
     std::string content;
@@ -60,23 +58,9 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     std::string http_status;
     mc::unpack(content, {&url, &text, &links, &http_status});
 
-    std::time_t t = std::time(nullptr);
-    std::tm tm = *std::localtime(&t);
-
-    ofp << "PAGE " << std::put_time(&tm, "%T") << std::endl;
-    ofp << "URL:    " << url << std::endl;
-    ofp << "TEXT_S: " << text.size() << std::endl;
-
     mc::UrlParser root(url);
 
-    if (http_status.compare("0") != 0)
-    {
-      continue;
-    }
-    else
-    {
-      visited.insert(url);
-    }
+    visited.insert(url);
 
     std::vector<mc::UrlParser> outlinks;
 
@@ -140,8 +124,6 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         }
       }
     }
-
-    ofp << "LINKS:  " << cnt << "/" << outlinks.size() << std::endl << std::endl;
   }
 }
 

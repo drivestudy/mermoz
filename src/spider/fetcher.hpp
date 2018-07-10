@@ -35,6 +35,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <atomic>
 
 #include <curl/curl.h>
 
@@ -48,6 +49,7 @@ namespace spider
 void fetcher(mermoz::common::AsyncQueue<std::string>* url_queue,
              mermoz::common::AsyncQueue<std::string>* content_queue,
              std::string user_agent,
+             std::atomic<uint64_t>* nfetched,
              bool* do_fetch);
 
 } // namespace spider

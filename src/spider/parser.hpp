@@ -33,6 +33,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <atomic>
 
 #include "gumbo.h"
 
@@ -45,6 +46,7 @@ namespace spider
 
 void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
             mermoz::common::AsyncQueue<std::string>* parsed_queue,
+            std::atomic<uint64_t>* nparsed,
             bool* status);
 
 std::string get_text(GumboNode* node);

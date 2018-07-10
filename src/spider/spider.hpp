@@ -29,6 +29,7 @@
 #ifndef MERMOZ_SPIDER_H__
 #define MERMOZ_SPIDER_H__
 
+#include <atomic>
 #include "spider/fetcher.hpp"
 #include "spider/parser.hpp"
 
@@ -42,6 +43,8 @@ void spider(mermoz::common::AsyncQueue<std::string>* content_queue,
             int num_threads_fetchers,
             int num_threads_parsers,
             std::string user_agent,
+            std::atomic<uint64_t>* nfetched,
+            std::atomic<uint64_t>* nparsed,
             bool* status);
 
 } // namespace spider

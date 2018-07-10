@@ -138,8 +138,8 @@ bool Robots::parse_file()
       }
       else if (line.find("Allow:") != std::string::npos)
       {
-        if (line.size() > 8)
-          doors.push_back(mc::UrlParser(line.substr(8)) + up_host);
+        if (line.size() > 7)
+          doors.push_back(mc::UrlParser(line.substr(7)) + up_host);
       }
       else if (line.find("Crawl-delay:") != std::string::npos)
       {

@@ -46,17 +46,19 @@ void spider(mermoz::common::AsyncQueue<std::string>* url_queue,
             int num_threads_fetchers,
             int num_threads_parsers,
             std::string user_agent,
+            std::atomic<uint64_t>* nfetched,
+            std::atomic<uint64_t>* nparsed,
             bool* status)
 {
   mc::AsyncQueue<std::string> parsed_queue;
 
   std::vector<std::thread> fetchers;
   for (int i = 0; i < num_threads_fetchers; i++)
-    fetchers.push_back(std::thread(fetcher, url_queue, &parsed_queue, user_agent, status));
+    fetchers.push_back(std::thread(fetcher, url_queue, &parsed_queue, user_agent, nfetched, status));
 
   std::vector<std::thread> parsers;
   for (int i = 0; i < num_threads_parsers; i++)
-    parsers.push_back(std::thread(parser, &parsed_queue, content_queue, status));
+    parsers.push_back(std::thread(parser, &parsed_queue, content_queue, nparsed, status));
 
   for (auto& t : fetchers)
     t.join();

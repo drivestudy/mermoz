@@ -26,6 +26,7 @@
  *
  */
 
+#include <ctime>
 #include "spider/fetcher.hpp"
 
 namespace mc = mermoz::common;
@@ -38,6 +39,7 @@ namespace spider
 void fetcher(mc::AsyncQueue<std::string>* url_queue,
              mc::AsyncQueue<std::string>* content_queue,
              std::string user_agent,
+             std::atomic<uint64_t>* nfetched,
              bool* do_fetch)
 {
   while (*do_fetch)
@@ -54,6 +56,8 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
     mc::pack(message, {&url, &content, &http_code_string});
 
     content_queue->push(message);
+
+    ++(*nfetched);
   }
 }
 
