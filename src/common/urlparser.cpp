@@ -283,14 +283,30 @@ void UrlParser::exchange(std::string scheme1, std::string scheme2)
 
 bool UrlParser::parse()
 {
-  std::string tmp;
+  // sanitize the URL
+  size_t pos {0};
   for (unsigned char c : url)
   {
-    if (c > 0x20 && c < 0x7f)
-      tmp.append((const char*)&c,1);
+    if (c <= 0x20 || c >= 0x7f)
+      pos++;
+    else
+      break;
   }
 
-  url = tmp;
+  url = url.substr(pos);
+
+  if (url[0] == '/')
+  {
+    if (url[1] == '/')
+      do_authority = true;
+    else
+      do_path = true;
+  }
+  else if (url[0] == '.' || url[0] == '*')
+    do_path = true;
+  else
+    do_scheme = true;
+
   std::stringstream ss(url);
   std::streambuf* sb = ss.rdbuf();
 
@@ -319,49 +335,17 @@ void UrlParser::parse_scheme(std::streambuf* sb)
 
   char c;
   int nslash {0};
-  bool is_star {false};
-
-  while ((c = sb->sbumpc()) == '/' || c == '*') 
-  {
-    nslash++;
-    is_star = is_star || (c == '*');
-  }
-
-  if (is_star)
-  {
-    do_path = true;
-    sb->pubseekoff(0, std::ios_base::beg);
-    return;
-  }
-  else if (nslash != 0)
-  {
-    nslash >= 2 ? do_authority = true : do_path = true;
-    sb->pubseekoff(0, std::ios_base::beg);
-    return;
-  }
-  else
-  {
-    sb->sungetc();
-  }
-
   bool has_separator {false};
-  bool has_dot {false};
 
   while ((c = sb->sbumpc()) != EOF)
   {
-    if (c == '.')
-    {
-      has_dot = true;
-      break;
-    }
-    else if (c != ':' && c != '/')
+    if (c != ':')
     {
       scheme.push_back(c);
     }
     else
     {
-      has_separator = c == ':';
-      if (c == '/') nslash++;
+      has_separator = true;
       while ((c = sb->sbumpc()) == '/') { nslash++; }
       sb->sungetc();
       break;
@@ -370,15 +354,7 @@ void UrlParser::parse_scheme(std::streambuf* sb)
 
   do_parse = c != EOF;
 
-  if (has_dot)
-  {
-    // case of scheme-less pathes
-    sb->pubseekoff(0, std::ios_base::beg);
-    scheme = "";
-    do_parse = true;
-    do_authority = true;
-  }
-  else if (!has_separator)
+  if (!has_separator)
   {
     // case of relative pathes
     sb->pubseekoff(0, std::ios_base::beg);
@@ -388,7 +364,7 @@ void UrlParser::parse_scheme(std::streambuf* sb)
   }
   else
   {
-    nslash >= 2 ? do_authority = true : do_path = true;
+    nslash == 2 ? do_authority = true : do_path = true;
   }
 }
 
