@@ -281,6 +281,15 @@ void UrlParser::exchange(std::string scheme1, std::string scheme2)
     print_warning("Switch-scheme not handled by UrlParser");
 }
 
+bool UrlParser::valid_scheme(std::initializer_list<std::string> schemes)
+{
+  for (auto& s : schemes)
+    if(s.compare(scheme) == 0)
+      return true;
+
+  return false;
+}
+
 bool UrlParser::parse()
 {
   // sanitize the URL

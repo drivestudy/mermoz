@@ -34,6 +34,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 #include "common/logs.hpp"
 
@@ -77,6 +78,8 @@ public:
   bool parse();
 
   void exchange(std::string scheme1, std::string scheme2);
+
+  bool valid_scheme(std::initializer_list<std::string> schemes);
 
   std::string url;
 

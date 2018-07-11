@@ -105,6 +105,9 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     long cnt {0};
     for (auto& outlink : outlinks)
     {
+      if (!outlink.valid_scheme({"http", "https"}))
+        continue;
+
       std::string clean_url = outlink.get_url(false, false);
       if (visited.find(clean_url) == visited.end()
           && to_visit.find(clean_url) == to_visit.end())
