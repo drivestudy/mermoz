@@ -54,7 +54,7 @@ public:
   void push(const ValueType& val);
 
   size_t size();
-  bool empty() const;
+  bool empty();
 
 private:
   std::mutex mutex;
@@ -122,7 +122,7 @@ size_t AsyncQueue<ValueType>::size()
 }
 
 template<typename ValueType>
-bool AsyncQueue<ValueType>::empty() const
+bool AsyncQueue<ValueType>::empty()
 {
   std::unique_lock<std::mutex> mlock(mutex);
   return queue.empty();

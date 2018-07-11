@@ -334,13 +334,14 @@ void UrlParser::parse_scheme(std::streambuf* sb)
       has_dot = true;
       break;
     }
-    else if (c != ':')
+    else if (c != ':' && c != '/')
     {
       scheme.push_back(c);
     }
     else
     {
-      has_separator = true;
+      has_separator = c == ':';
+      if (c == '/') nslash++;
       while ((c = sb->sbumpc()) == '/') { nslash++; }
       sb->sungetc();
       break;
@@ -357,7 +358,7 @@ void UrlParser::parse_scheme(std::streambuf* sb)
     do_parse = true;
     do_authority = true;
   }
-  else if (!has_separator && !do_parse)
+  else if (!has_separator)
   {
     // case of relative pathes
     sb->pubseekoff(0, std::ios_base::beg);

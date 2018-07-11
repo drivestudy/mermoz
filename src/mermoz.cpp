@@ -99,17 +99,20 @@ int main (int argc, char** argv)
                      &status);
 
   std::ofstream ofp("log.out");
+  
+  ofp << "# time urls contents fetched parsed" << std::endl;
+
   while (status)
   {
     sleep(2);
     std::time_t t = std::time(nullptr);
     std::tm tm = *std::localtime(&t);
 
-    ofp << std::put_time(&tm, "%T") << std::endl;
-    ofp << "URLs " << url_queue.size() << std::endl;
-    ofp << "CONT " << content_queue.size() << std::endl;
-    ofp << "FETC " << nfetched << std::endl;
-    ofp << "PARS " << nparsed << std::endl << std::endl;
+    ofp << tm.tm_hour*3600 + tm.tm_min*60 + tm.tm_sec << " ";
+    ofp << url_queue.size() << " ";
+    ofp << content_queue.size() << " ";
+    ofp << nfetched << " ";
+    ofp << nparsed << std::endl;
   }
 
   urlserver.join();

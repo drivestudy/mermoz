@@ -44,6 +44,8 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
                bool* status)
 {
   std::set<std::string> visited;
+  std::set<std::string> to_visit;
+
   std::map<std::string, Robots> robots;
   size_t counter {0};
 
@@ -59,6 +61,10 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     mc::unpack(content, {&url, &text, &links, &http_status});
 
     mc::UrlParser root(url);
+
+    std::set<std::string>::iterator it;
+    if ((it = to_visit.find(url)) != to_visit.end())
+      to_visit.erase(it);
 
     visited.insert(url);
 
@@ -100,7 +106,8 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     for (auto& outlink : outlinks)
     {
       std::string clean_url = outlink.get_url(false, false);
-      if (visited.find(clean_url) == visited.end())
+      if (visited.find(clean_url) == visited.end()
+          && to_visit.find(clean_url) == to_visit.end())
       {
         if (robots.find(outlink.domain) == robots.end())
           robots.insert(std::pair<std::string, Robots>(outlink.domain,
@@ -120,6 +127,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         if (is_allowed)
         {
           url_queue->push(clean_url);
+          to_visit.insert(clean_url);
           cnt++;
         }
       }
