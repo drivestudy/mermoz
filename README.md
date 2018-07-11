@@ -8,6 +8,14 @@ $ cd build
 $ ./mermoz --parsers N --fetchers M --seed URL --user-agent UA
 ```
 
+## Webmasters? :desktop: 
+Probably, you see us crawling your website, we announce ourselves as:
+```
+Mozilla/5.0 (compatible; Qwantify/Mermoz/0.1; +https://www.qwant.com/;
++https://www.github.com/QwantResearch/mermoz)
+```
+with the following IPs `194.187.171.0/24`.
+
 ## Examples
 
 The detailed readme of examples is located within [`examples/README.md`](examples/README.md).
