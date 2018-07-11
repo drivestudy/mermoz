@@ -102,13 +102,13 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       link.push_back(c);
     }
 
-    long cnt {0};
     for (auto& outlink : outlinks)
     {
       if (!outlink.valid_scheme({"http", "https"}))
         continue;
 
       std::string clean_url = outlink.get_url(false, false);
+
       if (visited.find(clean_url) == visited.end()
           && to_visit.find(clean_url) == to_visit.end())
       {
@@ -116,22 +116,12 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
           robots.insert(std::pair<std::string, Robots>(outlink.domain,
                         Robots(outlink.domain, "Qwantify", user_agent)));
 
-        bool is_allowed;
-
-        try
-        {
-          is_allowed = robots[outlink.domain].is_allowed(clean_url);
-        }
-        catch (...)
-        {
-          std::cout << "err " << clean_url << std::endl;
-        }
+        bool is_allowed = robots[outlink.domain].is_allowed(clean_url);
 
         if (is_allowed)
         {
           url_queue->push(clean_url);
           to_visit.insert(clean_url);
-          cnt++;
         }
       }
     }
