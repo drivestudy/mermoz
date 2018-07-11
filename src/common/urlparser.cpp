@@ -67,7 +67,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
   }
   else
   {
-    throw std::invalid_argument("Both UrlParsers have scheme and/or authority");
+    return *this;
   }
 
   // Cleanning up the path_tree vector
@@ -283,12 +283,16 @@ void UrlParser::exchange(std::string scheme1, std::string scheme2)
 
 bool UrlParser::parse()
 {
+  std::string tmp;
+  for (unsigned char c : url)
+  {
+    if (c > 0x20 && c < 0x7f)
+      tmp.append((const char*)&c,1);
+  }
+
+  url = tmp;
   std::stringstream ss(url);
   std::streambuf* sb = ss.rdbuf();
-
-  char c;
-  while ((c = sb->sbumpc()) == ' ') {}
-  sb->sungetc();
 
   while (do_parse)
   {
