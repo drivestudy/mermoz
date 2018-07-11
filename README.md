@@ -8,7 +8,7 @@ $ cd build
 $ ./mermoz --parsers N --fetchers M --seed URL --user-agent UA
 ```
 
-## Webmasters? :desktop: 
+## Webmasters? :computer: 
 Probably, you see us crawling your website, we announce ourselves as:
 ```
 Mozilla/5.0 (compatible; Qwantify/Mermoz/0.1; +https://www.qwant.com/;
