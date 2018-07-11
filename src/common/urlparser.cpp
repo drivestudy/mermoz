@@ -286,6 +286,10 @@ bool UrlParser::parse()
   std::stringstream ss(url);
   std::streambuf* sb = ss.rdbuf();
 
+  char c;
+  while ((c = sb->sbumpc()) == ' ') {}
+  sb->sungetc();
+
   while (do_parse)
   {
     if (do_scheme)
@@ -311,9 +315,21 @@ void UrlParser::parse_scheme(std::streambuf* sb)
 
   char c;
   int nslash {0};
+  bool is_star {false};
 
-  while ((c = sb->sbumpc()) == '/') { nslash++; }
-  if (nslash != 0)
+  while ((c = sb->sbumpc()) == '/' || c == '*') 
+  {
+    nslash++;
+    is_star = is_star || (c == '*');
+  }
+
+  if (is_star)
+  {
+    do_path = true;
+    sb->pubseekoff(0, std::ios_base::beg);
+    return;
+  }
+  else if (nslash != 0)
   {
     nslash >= 2 ? do_authority = true : do_path = true;
     sb->pubseekoff(0, std::ios_base::beg);

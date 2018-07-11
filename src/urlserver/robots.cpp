@@ -135,18 +135,36 @@ bool Robots::parse_file()
 
       if ((pos = line.find("Disallow:")) != std::string::npos)
       {
-        if (line.size() > pos+10)
-          walls.push_back(mc::UrlParser(line.substr(pos+10)) + up_host);
+        if (line.size() > pos+9)
+        {
+          try
+          {
+            walls.push_back(mc::UrlParser(line.substr(pos+9)) + up_host);
+          }
+          catch(...)
+          {
+            std::cerr << "cannot add urls" << std::endl;
+          }
+        }
       }
       else if ((pos = line.find("Allow:")) != std::string::npos)
       {
-        if (line.size() > pos+7)
-          doors.push_back(mc::UrlParser(line.substr(pos+7)) + up_host);
+        if (line.size() > pos+6)
+        {
+          try
+          {
+            doors.push_back(mc::UrlParser(line.substr(pos+6)) + up_host);
+          }
+          catch(...)
+          {
+            std::cerr << "cannot add urls" << std::endl;
+          }
+        }
       }
       else if ((pos = line.find("Crawl-delay:")) != std::string::npos)
       {
-        if (line.size() > pos+13)
-          crawl_delay = std::max(crawl_delay, std::atoi(line.substr(pos+13).c_str()));
+        if (line.size() > pos+12)
+          crawl_delay = std::max(crawl_delay, std::atoi(line.substr(pos+12).c_str()));
       }
     }
   }
