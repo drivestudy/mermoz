@@ -114,9 +114,18 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       {
         if (robots.find(outlink.domain) == robots.end())
           robots.insert(std::pair<std::string, Robots>(outlink.domain,
-                        Robots(outlink.domain, "Qwantify", user_agent)));
+                        Robots(outlink.scheme + "://" + outlink.domain, "Qwantify", user_agent)));
 
-        bool is_allowed = robots[outlink.domain].is_allowed(clean_url);
+        bool is_allowed {false};
+
+        try
+        {
+          is_allowed = robots[outlink.domain].is_allowed(clean_url);
+        }
+        catch (...)
+        {
+          std::cerr << "Error for Robots check of " << clean_url << std::endl; 
+        }
 
         if (is_allowed)
         {
