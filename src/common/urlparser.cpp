@@ -81,7 +81,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
     else if (i->compare("..") == 0)
     {
       i = this->path_tree.erase(i);
-      if (path_tree.size() > 1)
+      if (i != path_tree.begin())
       {
         i--;
         i = this->path_tree.erase(i);
