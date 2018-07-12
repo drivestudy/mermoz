@@ -49,11 +49,10 @@ long http_fetch(std::string& url,
   if (res != CURLE_OK || content.empty())
   {
     std::ostringstream oss;
-    oss << "Exchange scheme for " << url;
+    oss << "Exchange scheme [HTTP/HTTPS] for " << url;
 
     up.exchange("https", "http");
     url = up.get_url();
-    oss << " to " << url;
 
     content.clear();
     res = curl_wraper(url, content, time_out, user_agent);
@@ -90,6 +89,11 @@ long curl_wraper(std::string& url,
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
     res = curl_easy_perform(curl);
+
+    char *ct = NULL;
+    res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
+    if (std::strcmp(ct, "text/html") != 0)
+      content.clear();
 
     curl_easy_cleanup(curl);
   }
