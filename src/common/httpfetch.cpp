@@ -91,11 +91,10 @@ long curl_wraper(std::string& url,
     res = curl_easy_perform(curl);
 
     char *ct = NULL;
-    char exp_ct[] = "text/html";
     res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
 
     if (ct)
-      if (std::strcmp(ct, exp_ct) != 0)
+      if (std::string(ct).find("text/html") == std::string::npos)
         content.clear();
 
     curl_easy_cleanup(curl);

@@ -81,8 +81,11 @@ int main (int argc, char** argv)
   {
     link = {""};
     seedfile >> link;
-    url_queue.push(link);
-    mem_sec += link.size();
+    if (!link.empty())
+    {
+      url_queue.push(link);
+      mem_sec += link.size();
+    }
   }
   seedfile.close();
 

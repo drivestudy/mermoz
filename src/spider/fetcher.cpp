@@ -48,6 +48,7 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
     std::string url;
     url_queue->pop(url);
     (*mem_sec) -= url.size();
+    std::cout << url << std::endl;
 
     std::string content;
     long http_code = mc::http_fetch(url, content, 5L, user_agent);
