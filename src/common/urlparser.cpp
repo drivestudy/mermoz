@@ -78,11 +78,14 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
     {
       i = this->path_tree.erase(i);
     }
-    else if (*i == "..")
+    else if (i->compare("..") == 0)
     {
       i = this->path_tree.erase(i);
-      i--;
-      i = this->path_tree.erase(i);
+      if (!path_tree.empty())
+      {
+        i--;
+        i = this->path_tree.erase(i);
+      }
     }
     else
     {
