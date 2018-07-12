@@ -180,6 +180,7 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
 {
   mc::UrlParser root(root_url);
 
+  std::ostringstream oss;
   formated_urls = {""};
 
   std::string link;
@@ -205,7 +206,7 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
         }
 
         if (!up.valid_scheme({"http", "https"}))
-          formated_urls.append(up.get_url(false, false)).append(",");
+          oss << up.get_url(false, false) << ",";
       }
 
       link = {""};
@@ -215,7 +216,9 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
     link.push_back(c);
   }
 
-  formated_urls.pop_back(); // removes last ,
+  formated_urls = oss.str();
+  formated_urls.pop_back(); // removes last ','
+
   raw_urls.clear();
 }
 
