@@ -54,7 +54,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   {
     std::string content;
     content_queue->pop(content);
-    (*mem_sec) -= content.size();
+    //(*mem_sec) -= content.size();
 
     std::string url;
     std::string text;
@@ -98,7 +98,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
           if (is_allowed)
           {
             url_queue->push(link);
-            (*mem_sec) += link.size();
+            //(*mem_sec) += link.size();
 
             to_visit.insert(link);
           }

@@ -1,25 +1,25 @@
 /*
  * MIT License
- * 
- * Copyright (c) 2018 Qwant Research 
- * 
+ *
+ * Copyright (c) 2018 Qwant Research
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE. 
+ * SOFTWARE.
  *
  * Author:
  * Noel Martin (n.martin@qwantresearch.com)
@@ -45,13 +45,13 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
   {
     std::string message;
     content_queue->pop(message);
-    (*mem_sec) -= message.size();
+    //(*mem_sec) -= message.size();
 
     std::string url;
     std::string content;
     std::string http_status;
     mc::unpack(message, {&url, &content, &http_status});
-   
+
     if (http_status.compare("0") == 0)
     {
       GumboOutput* output = gumbo_parse(content.c_str());
@@ -76,7 +76,7 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       parsed_queue->push(message);
     }
 
-    (*mem_sec) += message.size();
+    //(*mem_sec) += message.size();
 
     ++(*nparsed);
   }
@@ -178,22 +178,26 @@ void text_cleaner (std::string& s)
 
 void url_formating(std::string& root_url, std::string& raw_urls, std::string& formated_urls)
 {
-  mc::UrlParser root(root_url);
+  formated_urls.clear();
 
-  std::ostringstream oss;
-  formated_urls = {""};
+  if (raw_urls.empty())
+    return;
+
+  mc::UrlParser root(root_url);
 
   std::string link;
   for (auto c : raw_urls)
   {
-    if ((c == ' ' || c == ',') && !link.empty())
+    if (c == ' ' || c == ',')
     {
-      if (link.find("javascript") == std::string::npos
+      if (!link.empty()
+          && link.find("javascript") == std::string::npos
           && link.find("mailto") == std::string::npos
           && link.find(",") == std::string::npos)
       {
         mc::UrlParser up(link);
-        if (up.scheme.empty() || up.authority.empty())
+        if ((up.scheme.empty() && !up.authority.empty()) ||
+            (up.scheme.empty() && up.authority.empty()))
         {
           try
           {
@@ -205,21 +209,21 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
           }
         }
 
-        if (!up.valid_scheme({"http", "https"}))
-          oss << up.get_url(false, false) << ",";
+        if (up.valid_scheme({"http", "https"}))
+          formated_urls.append(up.get_url(false, false)).append(",");
       }
 
-      link = {""};
+      link.clear();
       continue;
     }
-
-    link.push_back(c);
+    else
+    {
+      link.push_back(c);
+    }
   }
 
-  formated_urls = oss.str();
-  formated_urls.pop_back(); // removes last ','
-
-  raw_urls.clear();
+  if (!formated_urls.empty())
+    formated_urls.pop_back(); // removes last comma
 }
 
 } // namespace spider

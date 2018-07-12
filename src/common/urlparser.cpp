@@ -242,11 +242,14 @@ std::string UrlParser::get_url(bool get_query, bool get_fragment)
 {
   std::string url;
 
-  url.append(scheme).append("://");
-  url.append(authority).append("/");
+  if (!scheme.empty())
+    url.append(scheme).append("://");
+
+  if (!authority.empty())
+    url.append(authority).append("/");
 
   for (auto& elem : path_tree)
-    if (!elem.empty())
+    if (!elem.empty() || elem.compare(" ") == 0)
       url.append(elem).append("/");
 
   url.pop_back(); // remove last '/'
