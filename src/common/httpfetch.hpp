@@ -30,7 +30,7 @@
 #define MERMOZ_HTTPFETCH_H__
 
 #include <string>
-#include <csting>
+#include <cstring>
 #include <vector>
 #include <curl/curl.h>
 
