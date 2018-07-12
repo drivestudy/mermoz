@@ -60,7 +60,6 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       text_cleaner(text);
 
       std::string raw_links = get_links(output->root);
-      std::cout << raw_links << std::endl;
       std::string formated_urls;
       url_formating(url, raw_links, formated_urls);
 
@@ -225,7 +224,6 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
 
   if (!formated_urls.empty())
     formated_urls.pop_back(); // removes last comma
-  std::cout << formated_urls << std::endl;
 }
 
 } // namespace spider
