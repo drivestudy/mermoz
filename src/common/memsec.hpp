@@ -42,7 +42,7 @@ namespace common
 class MemSec
 {
 public:
-  MemSec(uint64_t max_mem) : max_mem(max_mem) {}
+  MemSec(uint64_t max_mem) : max_mem(max_mem), cur_mem(0) {}
 
   MemSec& operator+=(uint64_t mem);
   MemSec& operator-=(uint64_t mem);

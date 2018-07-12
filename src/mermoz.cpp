@@ -82,7 +82,7 @@ int main (int argc, char** argv)
     link = {""};
     seedfile >> link;
     url_queue.push(link);
-    //mem_sec += link.size();
+    mem_sec += link.size();
   }
   seedfile.close();
 

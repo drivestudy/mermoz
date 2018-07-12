@@ -45,7 +45,7 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
   {
     std::string message;
     content_queue->pop(message);
-    //(*mem_sec) -= message.size();
+    (*mem_sec) -= message.size();
 
     std::string url;
     std::string content;
@@ -76,7 +76,7 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       parsed_queue->push(message);
     }
 
-    //(*mem_sec) += message.size();
+    (*mem_sec) += message.size();
 
     ++(*nparsed);
   }

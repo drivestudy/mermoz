@@ -47,7 +47,7 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
   {
     std::string url;
     url_queue->pop(url);
-    //*(mem_sec) -= url.size();
+    (*mem_sec) -= url.size();
 
     std::string content;
     long http_code = mc::http_fetch(url, content, 5L, user_agent);
@@ -59,7 +59,7 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
 
     content_queue->push(message);
 
-    //(*mem_sec) += message.size();
+    (*mem_sec) += message.size();
     ++(*nfetched);
   }
 }
