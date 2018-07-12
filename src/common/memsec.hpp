@@ -1,39 +1,66 @@
 /*
  * MIT License
- *
- * Copyright (c) 2018 Qwant Research
- *
+ * 
+ * Copyright (c) 2018 Qwant Research 
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * SOFTWARE. 
  *
  * Author:
  * Noel Martin (n.martin@qwantresearch.com)
  *
  */
 
-#ifndef MERMOZ_COMMON_H__
-#define MERMOZ_COMMON_H__
+#ifndef MERMOZ_MEMSEC_H__
+#define MERMOZ_MEMSEC_H__
 
-#include "common/logs.hpp"
-#include "common/asyncqueue.hpp"
-#include "common/urlparser.hpp"
-#include "common/packer.hpp"
-#include "common/httpfetch.hpp"
-#include "common/memsec.hpp"
+#include <cstdint>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
 
-#endif // MERMOZ_COMMON_H__
+namespace mermoz
+{
+namespace common
+{
+
+class MemSec
+{
+public:
+  MemSec(uint64_t max_mem) : max_mem(max_mem) {}
+
+  MemSec& operator+=(uint64_t mem);
+  MemSec& operator-=(uint64_t mem);
+
+  static const uint64_t B{1};
+  static const uint64_t KB{1UL << 10};
+  static const uint64_t MB{1UL << 20};
+  static const uint64_t GB{1UL << 30};
+
+private:
+  const uint64_t max_mem;
+  std::atomic<uint64_t> cur_mem;
+
+  std::mutex mtx;
+  std::condition_variable cond;
+}; // class MemSec
+
+} // namespace common
+} // namespace mermoz
+
+#endif // MERMOZ_MEMSEC_H__

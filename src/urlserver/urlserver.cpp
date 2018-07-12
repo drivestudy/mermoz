@@ -41,6 +41,7 @@ namespace urlserver
 void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
                mermoz::common::AsyncQueue<std::string>* url_queue,
                std::string user_agent,
+               mc::MemSec* mem_sec,
                bool* status)
 {
   std::set<std::string> visited;
@@ -53,6 +54,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   {
     std::string content;
     content_queue->pop(content);
+    (*mem_sec) -= content.size();
 
     std::string url;
     std::string text;
@@ -68,71 +70,45 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
     visited.insert(url);
 
-    std::vector<mc::UrlParser> outlinks;
-
     std::string link;
     for (auto c : links)
     {
       if ((c == ' ' || c == ',') && !link.empty())
       {
-        if (link.find("javascript") == std::string::npos
-            && link.find("mailto") == std::string::npos
-            && link.find(",") == std::string::npos)
+        if (visited.find(link) == visited.end()
+            && to_visit.find(link) == to_visit.end())
         {
           mc::UrlParser up(link);
-          if (up.scheme.empty() || up.authority.empty())
-          {
-            try
-            {
-              outlinks.push_back(up + root);
-            }
-            catch(...)
-            {
-              std::cout << "cannot add " << link << std::endl;
-            }
-          }
-          else
-            outlinks.push_back(up);
 
+          if (robots.find(up.domain) == robots.end())
+            robots.insert(std::pair<std::string, Robots>(up.domain,
+                          Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent)));
+
+          bool is_allowed {false};
+
+          try
+          {
+            is_allowed = robots[up.domain].is_allowed(link);
+          }
+          catch (...)
+          {
+            std::cerr << "Error for Robots check of " << link << std::endl;
+          }
+
+          if (is_allowed)
+          {
+            url_queue->push(link);
+            (*mem_sec) += link.size();
+
+            to_visit.insert(link);
+          }
         }
+
         link = {""};
         continue;
       }
 
       link.push_back(c);
-    }
-
-    for (auto& outlink : outlinks)
-    {
-      if (!outlink.valid_scheme({"http", "https"}))
-        continue;
-
-      std::string clean_url = outlink.get_url(false, false);
-
-      if (visited.find(clean_url) == visited.end()
-          && to_visit.find(clean_url) == to_visit.end())
-      {
-        if (robots.find(outlink.domain) == robots.end())
-          robots.insert(std::pair<std::string, Robots>(outlink.domain,
-                        Robots(outlink.scheme + "://" + outlink.domain, "Qwantify", user_agent)));
-
-        bool is_allowed {false};
-
-        try
-        {
-          is_allowed = robots[outlink.domain].is_allowed(clean_url);
-        }
-        catch (...)
-        {
-          std::cerr << "Error for Robots check of " << clean_url << std::endl; 
-        }
-
-        if (is_allowed)
-        {
-          url_queue->push(clean_url);
-          to_visit.insert(clean_url);
-        }
-      }
     }
   }
 }

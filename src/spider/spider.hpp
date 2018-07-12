@@ -45,6 +45,7 @@ void spider(mermoz::common::AsyncQueue<std::string>* content_queue,
             std::string user_agent,
             std::atomic<uint64_t>* nfetched,
             std::atomic<uint64_t>* nparsed,
+            mermoz::common::MemSec* mem_sec,
             bool* status);
 
 } // namespace spider

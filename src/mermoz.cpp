@@ -54,7 +54,8 @@ int main (int argc, char** argv)
   ("help", "displays this message")
   ("fetchers", po::value<int>(), "number of fetchers")
   ("parsers", po::value<int>(), "number of parsers")
-  ("seed", po::value<std::string>(), "URL from witch to begin")
+  ("max-ram", po::value<int>(), "max RAM value in GB")
+  ("seeds", po::value<std::string>(), "file of urls from witch to begin")
   ("user-agent", po::value<std::string>(), "announce youself")
   ("kafka-file", po::value<std::string>(), "config file for the Kafka consumer & producer")
   ;
@@ -72,7 +73,18 @@ int main (int argc, char** argv)
   bool status = true;
 
   mc::AsyncQueue<std::string> url_queue;
-  url_queue.push(vmap["seed"].as<std::string>());
+  mc::MemSec mem_sec(vmap["max-ram"].as<int>() * mc::MemSec::GB);
+
+  std::string link;
+  std::ifstream seedfile(vmap["seeds"].as<std::string>());
+  while (!seedfile.eof())
+  {
+    link = {""};
+    seedfile >> link;
+    url_queue.push(link);
+    mem_sec += link.size();
+  }
+  seedfile.close();
 
   mc::AsyncQueue<std::string> content_queue;
 
@@ -80,6 +92,7 @@ int main (int argc, char** argv)
                         &content_queue,
                         &url_queue,
                         vmap["user-agent"].as<std::string>(),
+                        &mem_sec,
                         &status);
 
   std::atomic<uint64_t> nfetched;
@@ -96,6 +109,7 @@ int main (int argc, char** argv)
                      vmap["user-agent"].as<std::string>(),
                      &nfetched,
                      &nparsed,
+                     &mem_sec,
                      &status);
 
   std::ofstream ofp("log.out");

@@ -47,6 +47,7 @@ namespace spider
 void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
             mermoz::common::AsyncQueue<std::string>* parsed_queue,
             std::atomic<uint64_t>* nparsed,
+            mermoz::common::MemSec* mem_sec,
             bool* status);
 
 std::string get_text(GumboNode* node);
@@ -54,6 +55,8 @@ std::string get_text(GumboNode* node);
 std::string get_links(GumboNode* node);
 
 void text_cleaner(std::string& s);
+
+void url_formating(std::string& rool_url, std::string& raw_urls, std::string& formated_urls);
 
 } // namespace spider
 } // namespace mermoz

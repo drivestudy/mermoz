@@ -38,12 +38,14 @@ namespace spider
 void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
             mermoz::common::AsyncQueue<std::string>* parsed_queue,
             std::atomic<uint64_t>* nparsed,
+            mermoz::common::MemSec* mem_sec,
             bool* status)
 {
   while (*status)
   {
     std::string message;
     content_queue->pop(message);
+    (*mem_sec) -= message.size();
 
     std::string url;
     std::string content;
@@ -57,9 +59,11 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       std::string text = get_text(output->root);
       text_cleaner(text);
 
-      std::string links = get_links(output->root);
+      std::string raw_links = get_links(output->root);
+      std::string formated_urls;
+      url_formating(url, raw_links, formated_urls);
 
-      mc::pack(message, {&url, &text, &links, &http_status});
+      mc::pack(message, {&url, &text, &formated_urls, &http_status});
 
       parsed_queue->push(message);
 
@@ -71,6 +75,8 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       mc::pack(message, {&url, &text, &links, &http_status});
       parsed_queue->push(message);
     }
+
+    (*mem_sec) += message.size();
 
     ++(*nparsed);
   }
@@ -168,6 +174,49 @@ void text_cleaner (std::string& s)
       it++;
     }
   }
+}
+
+void url_formating(std::string& root_url, std::string& raw_urls, std::string& formated_urls)
+{
+  mc::UrlParser root(root_url);
+
+  formated_urls = {""};
+
+  std::string link;
+  for (auto c : raw_urls)
+  {
+    if ((c == ' ' || c == ',') && !link.empty())
+    {
+      if (link.find("javascript") == std::string::npos
+          && link.find("mailto") == std::string::npos
+          && link.find(",") == std::string::npos)
+      {
+        mc::UrlParser up(link);
+        if (up.scheme.empty() || up.authority.empty())
+        {
+          try
+          {
+            up += root;
+          }
+          catch(...)
+          {
+            std::cout << "cannot add " << link << std::endl;
+          }
+        }
+
+        if (!up.valid_scheme({"http", "https"}))
+          formated_urls.append(up.get_url(false, false)).append(",");
+      }
+
+      link = {""};
+      continue;
+    }
+
+    link.push_back(c);
+  }
+
+  formated_urls.pop_back(); // removes last ,
+  raw_urls.clear();
 }
 
 } // namespace spider

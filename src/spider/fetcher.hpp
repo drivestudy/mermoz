@@ -50,6 +50,7 @@ void fetcher(mermoz::common::AsyncQueue<std::string>* url_queue,
              mermoz::common::AsyncQueue<std::string>* content_queue,
              std::string user_agent,
              std::atomic<uint64_t>* nfetched,
+             mermoz::common::MemSec* mem_sec,
              bool* do_fetch);
 
 } // namespace spider

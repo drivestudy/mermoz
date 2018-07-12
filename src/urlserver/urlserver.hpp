@@ -46,6 +46,7 @@ namespace urlserver
 void urlserver(mermoz::common::AsyncQueue<std::string>* inurls_queue,
                mermoz::common::AsyncQueue<std::string>* outurls_queue,
                std::string user_agent,
+               mermoz::common::MemSec* mem_sec,
                bool* status);
 
 } // namespace urlserver
