@@ -135,7 +135,9 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
                    std::string user_agent,
                    bool* status)
 {
+  std::queue<std::string> ordered_domains;
   std::set<std::string> domains;
+
   while (&status)
   {
     std::string domain;
@@ -144,7 +146,17 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
     if (domains.find(domain) != domains.end())
       continue;
     else
+    {
+      ordered_domains.push(domain);
       domains.insert(domain);
+    }
+
+    if (domains.size() > 100000)
+    {
+      robots->erase(ordered_domains.front());
+      domains.erase(ordered_domains.front());
+      ordered_domains.pop();
+    }
 
     robots->insert(std::pair<std::string, Robots>(domain,
                    Robots("http://" + domain, "Qwantify", user_agent)));

@@ -52,9 +52,13 @@ public:
 
   std::pair<typename std::map<KeyType, MappedType>::iterator,bool> insert(const ValueType& val); 
 
+  void erase(const KeyType& k);
+
   typename std::map<KeyType, MappedType>::iterator find(const KeyType& k);
 
   typename std::map<KeyType, MappedType>::iterator end();
+
+  size_t size();
 
 private:
   std::mutex mutex;
@@ -78,6 +82,13 @@ AsyncMap<KeyType, MappedType>::insert(const ValueType& val)
 }
 
 template<typename KeyType, typename MappedType>
+void AsyncMap<KeyType, MappedType>::erase(const KeyType& k)
+{
+  std::unique_lock<std::mutex> mlock(mutex);
+  map.erase(k);
+}
+
+template<typename KeyType, typename MappedType>
 typename std::map<KeyType, MappedType>::iterator
 AsyncMap<KeyType, MappedType>::find(const KeyType& k)
 {
@@ -90,6 +101,13 @@ typename std::map<KeyType, MappedType>::iterator
 AsyncMap<KeyType, MappedType>::end()
 {
   return map.end();
+}
+
+template<typename KeyType, typename MappedType>
+size_t AsyncMap<KeyType, MappedType>::size()
+{
+  std::unique_lock<std::mutex> mlock(mutex);
+  return map.size();
 }
 
 } // namespace common
