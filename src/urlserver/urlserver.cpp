@@ -46,9 +46,15 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 {
   std::set<std::string> visited;
   std::set<std::string> to_visit;
+  std::set<std::string> parsed_urls;
 
-  std::map<std::string, Robots> robots;
+  mc::AsyncQueue<std::string> robots_to_fetch;
+  mc::AsyncMap<std::string, Robots> robots;
+
   size_t counter {0};
+
+  std::thread t(robot_manager, &robots_to_fetch, &robots, user_agent, status);
+  t.detach();
 
   while (*status)
   {
@@ -70,48 +76,81 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
     visited.insert(url);
 
+    // parsing the incoming string
     std::string link;
     for (auto c : links)
     {
       if ((c == ' ' || c == ',') && !link.empty())
       {
         if (visited.find(link) == visited.end()
-            && to_visit.find(link) == to_visit.end())
+            && to_visit.find(link) == to_visit.end()
+            && parsed_urls.find(link) == parsed_urls.end())
         {
-          mc::UrlParser up(link);
-
-          if (robots.find(up.domain) == robots.end())
-            robots.insert(std::pair<std::string, Robots>(up.domain,
-                          Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent)));
-
-          bool is_allowed {false};
-
-          try
-          {
-            is_allowed = robots[up.domain].is_allowed(link);
-          }
-          catch (...)
-          {
-            std::cerr << "Error for Robots check of " << link << std::endl;
-          }
-
-          if (is_allowed)
-          {
-            url_queue->push(link);
-            (*mem_sec) += link.size();
-
-            to_visit.insert(link);
-          }
+          parsed_urls.insert(link);
         }
-
-        link = {""};
+        link.clear();
         continue;
       }
-
       link.push_back(c);
+    }
+
+    // dispatching tasks
+    for(auto it = parsed_urls.begin();
+        it != parsed_urls.end();)
+    {
+      mc::UrlParser up(*it);
+
+      if (robots.find(up.domain) == robots.end())
+      {
+        robots_to_fetch.push(up.domain);
+        it++;
+      }
+      else
+      {
+        bool is_ok {false};
+        try
+        {
+          is_ok = robots[up.domain].is_allowed(*it);
+        }
+        catch(...)
+        {
+          std::cerr << "Error for Robots check of " << link << std::endl;
+        }
+
+        if (is_ok)
+        {
+          url_queue->push(*it);
+          (*mem_sec) += it->size();
+          to_visit.insert(*it);
+        }
+
+        it = parsed_urls.erase(it);
+      }
     }
   }
 }
+
+void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
+                   mermoz::common::AsyncMap<std::string, Robots>* robots,
+                   std::string user_agent,
+                   bool* status)
+{
+  std::set<std::string> domains;
+  while (&status)
+  {
+    std::string domain;
+    robots_to_fetch->pop(domain);
+
+    if (domains.find(domain) != domains.end())
+      continue;
+    else
+      domains.insert(domain);
+
+    robots->insert(std::pair<std::string, Robots>(domain,
+                   Robots("http://" + domain, "Qwantify", user_agent)));
+  }
+}
+
 
 } // namespace urlserver
 } // namespace mermoz

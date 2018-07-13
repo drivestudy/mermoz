@@ -63,6 +63,8 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       std::string formated_urls;
       url_formating(url, raw_links, formated_urls);
 
+      text.clear(); // testing without data
+
       mc::pack(message, {&url, &text, &formated_urls, &http_status});
 
       parsed_queue->push(message);
