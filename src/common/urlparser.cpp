@@ -28,6 +28,8 @@
 
 #include "urlparser.hpp"
 
+namespace mc = mermoz::common;
+
 namespace mermoz
 {
 namespace common
@@ -35,39 +37,56 @@ namespace common
 
 UrlParser& UrlParser::operator+=(UrlParser& rhs)
 {
-  // Scheme-less case
-  if (this->scheme.empty() && !this->authority.empty())
+  if (complete_url && rhs.complete_url)
   {
-    this->scheme = rhs.scheme;
+    mc::print_warning ("Cannot add two complete URLs, return LHS");
     return *this;
   }
-
-  // Relative path case
-  if (this->scheme.empty() && this->authority.empty())
+  else if (!complete_url && !rhs.complete_url)
   {
-    // L.H.S. has a relative path
-    this->scheme = rhs.scheme;
-    this->authority = rhs.authority;
-    this->user = rhs.user;
-    this->pass = rhs.pass;
-    this->domain = rhs.domain;
-    this->port = rhs.port;
-
-    this->path_tree.insert(this->path_tree.begin(), rhs.path_tree.begin(), rhs.path_tree.end());
-  }
-  else if (rhs.scheme.empty() && rhs.authority.empty())
-  {
-    // R.H.S. has a relative path
-    this->path_tree.insert(this->path_tree.end(), rhs.path_tree.begin(), rhs.path_tree.end());
-
-    this->query = rhs.query;
-    this->query_args = rhs.query_args;
-
-    this->fragment = rhs.fragment;
-  }
-  else
-  {
+    mc::print_warning ("Cannot add two in-complete URLs, return LHS");
     return *this;
+  }
+  else if (!complete_url)
+  {
+    if (inherit_scheme)
+      scheme = rhs.scheme;
+
+    if (inherit_auth)
+    {
+      authority = rhs.authority;
+      user = rhs.user;
+      pass = rhs.pass;
+      domain = rhs.domain;
+      port = rhs.port;
+    }
+
+    if (inherit_path)
+      path_tree.insert(path_tree.begin(), rhs.path_tree.begin(), rhs.path_tree.end());
+  }
+  else if (!rhs.complete_url)
+  {
+    if (!rhs.inherit_scheme)
+      scheme = rhs.scheme;
+
+    if (!rhs.inherit_auth)
+    {
+      authority = rhs.authority;
+      user = rhs.user;
+      pass = rhs.pass;
+      domain = rhs.domain;
+      port = rhs.port;
+    }
+
+    if (rhs.inherit_path)
+    {
+      path_tree.insert(path_tree.end(), rhs.path_tree.begin(), rhs.path_tree.end());
+
+      query = rhs.query;
+      query_args = rhs.query_args;
+
+      fragment = rhs.fragment;
+    }
   }
 
   // Cleanning up the path_tree vector
@@ -312,13 +331,24 @@ bool UrlParser::parse()
 
   if (url[0] == '/')
   {
+    inherit_scheme = true;
+
     if (url[1] == '/')
       do_authority = true;
     else
+    {
+      inherit_auth = true;
       do_path = true;
+    }
   }
   else if (url[0] == '.' || url[0] == '*')
+  {
+    inherit_scheme = true;
+    inherit_auth = true;
+    inherit_path = true;
+
     do_path = true;
+  }
   else
     do_scheme = true;
 
@@ -340,6 +370,8 @@ bool UrlParser::parse()
     else
       return false;
   }
+
+  complete_url = !inherit_scheme && !inherit_auth && !inherit_path;
 
   return true;
 }
@@ -374,6 +406,11 @@ void UrlParser::parse_scheme(std::streambuf* sb)
     // case of relative pathes
     sb->pubseekoff(0, std::ios_base::beg);
     scheme = "";
+
+    inherit_scheme = true;
+    inherit_auth = true;
+    inherit_path = true;
+
     do_parse = true;
     do_path = true;
   }
