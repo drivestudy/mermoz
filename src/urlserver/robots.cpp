@@ -151,6 +151,9 @@ bool Robots::parse_file()
     }
   }
 
+  // It's parsed, thank you.
+  robots_file.clear();
+
   return true;
 }
 
