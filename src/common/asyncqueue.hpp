@@ -31,6 +31,7 @@
 
 #include <queue>
 #include <mutex>
+#include <chrono>
 #include <condition_variable>
 
 namespace mermoz
@@ -50,6 +51,7 @@ public:
 
   void pop();
   void pop(ValueType& val);
+  bool pop_for(ValueType& val, const int time_ms);
 
   void push(const ValueType& val);
 
@@ -101,6 +103,29 @@ void AsyncQueue<ValueType>::pop(ValueType& val)
 
   mlock.unlock();
   cond.notify_one();
+}
+
+template<typename ValueType>
+bool AsyncQueue<ValueType>::pop_for(ValueType& val, const int time_ms)
+{
+  using namespace std::chrono_literals;
+
+  std::unique_lock<std::mutex> mlock(mutex);
+
+  std::cv_status res;
+  if(queue.empty())
+    res = cond.wait_for(mlock, time_ms*1ms);
+
+  if (res == std::cv_status::timeout)
+    return false;
+
+  val = queue.front();
+  queue.pop();
+
+  mlock.unlock();
+  cond.notify_one();
+
+  return true;
 }
 
 template<typename ValueType>

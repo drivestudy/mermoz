@@ -59,44 +59,47 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   while (*status)
   {
     std::string content;
-    content_queue->pop(content);
-    (*mem_sec) -= content.size();
+    bool res = content_queue->pop_for(content, 1000);
 
-    std::string url;
-    std::string text;
-    std::string links;
-    std::string http_status;
-    mc::unpack(content, {&url, &text, &links, &http_status});
-
-    mc::UrlParser root(url);
-
-    std::set<std::string>::iterator it;
-    if ((it = to_visit.find(url)) != to_visit.end())
+    if (res)
     {
-      to_visit.erase(it);
-      (*mem_sec) -= it->size();
-    }
+      (*mem_sec) -= content.size();
+      std::string url;
+      std::string text;
+      std::string links;
+      std::string http_status;
+      mc::unpack(content, {&url, &text, &links, &http_status});
 
-    visited.insert(url);
-    (*mem_sec) += url.size();
+      mc::UrlParser root(url);
 
-    // parsing the incoming string
-    std::string link;
-    for (auto c : links)
-    {
-      if ((c == ' ' || c == ',') && !link.empty())
+      std::set<std::string>::iterator it;
+      if ((it = to_visit.find(url)) != to_visit.end())
       {
-        if (visited.find(link) == visited.end()
-            && to_visit.find(link) == to_visit.end()
-            && parsed_urls.find(link) == parsed_urls.end())
-        {
-          parsed_urls.insert(link);
-          (*mem_sec) -= url.size();
-        }
-        link.clear();
-        continue;
+        to_visit.erase(it);
+        (*mem_sec) -= it->size();
       }
-      link.push_back(c);
+
+      visited.insert(url);
+      (*mem_sec) += url.size();
+
+      // parsing the incoming string
+      std::string link;
+      for (auto c : links)
+      {
+        if ((c == ' ' || c == ',') && !link.empty())
+        {
+          if (visited.find(link) == visited.end()
+              && to_visit.find(link) == to_visit.end()
+              && parsed_urls.find(link) == parsed_urls.end())
+          {
+            parsed_urls.insert(link);
+            (*mem_sec) -= url.size();
+          }
+          link.clear();
+          continue;
+        }
+        link.push_back(c);
+      }
     }
 
     // dispatching tasks
@@ -119,7 +122,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         }
         catch(...)
         {
-          std::cerr << "Error for Robots check of " << link << std::endl;
+          std::cerr << "Error for Robots check of " << *it << std::endl;
         }
 
         if (is_ok)
