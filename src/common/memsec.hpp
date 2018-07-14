@@ -47,6 +47,9 @@ public:
   MemSec& operator+=(uint64_t mem);
   MemSec& operator-=(uint64_t mem);
 
+  bool is_critic();
+  uint64_t get_mem();
+
   static const uint64_t B{1};
   static const uint64_t KB{1UL << 10};
   static const uint64_t MB{1UL << 20};

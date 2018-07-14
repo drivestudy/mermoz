@@ -72,9 +72,13 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
     std::set<std::string>::iterator it;
     if ((it = to_visit.find(url)) != to_visit.end())
+    {
       to_visit.erase(it);
+      (*mem_sec) -= it->size();
+    }
 
     visited.insert(url);
+    (*mem_sec) += url.size();
 
     // parsing the incoming string
     std::string link;
@@ -87,6 +91,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
             && parsed_urls.find(link) == parsed_urls.end())
         {
           parsed_urls.insert(link);
+          (*mem_sec) -= url.size();
         }
         link.clear();
         continue;
@@ -120,11 +125,12 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         if (is_ok)
         {
           url_queue->push(*it);
-          (*mem_sec) += it->size();
           to_visit.insert(*it);
+          (*mem_sec) += 2*it->size();
         }
 
         it = parsed_urls.erase(it);
+        (*mem_sec) -= it->size();
       }
     }
   }

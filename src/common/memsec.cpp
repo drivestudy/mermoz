@@ -64,5 +64,15 @@ MemSec& MemSec::operator-=(uint64_t mem)
   cond.notify_one();
 }
 
+bool MemSec::is_critic()
+{
+  return (((float) cur_mem)/((float) max_mem) >= 0.9);
+}
+
+uint64_t MemSec::get_mem()
+{
+  return cur_mem;
+}
+
 } // namespace common
 } // namespace mermoz
