@@ -74,7 +74,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       if ((it = to_visit.find(url)) != to_visit.end())
       {
         to_visit.erase(it);
-        (*mem_sec) -= it->size();
+        (*mem_sec) -= url.size();
       }
 
       (*mem_sec) += url.size();
@@ -132,8 +132,8 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
           to_visit.insert(*it);
         }
 
-        it = parsed_urls.erase(it);
         (*mem_sec) -= it->size();
+        it = parsed_urls.erase(it);
       }
     }
   }
@@ -151,6 +151,10 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
   {
     std::string domain;
     robots_to_fetch->pop(domain);
+
+    std::ostringstream oss;
+    oss << "Number of robots saved: " << domain.size();
+    mc::print_strong_log(oss.str());
 
     if (domains.find(domain) != domains.end())
     {

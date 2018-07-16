@@ -130,7 +130,7 @@ int main (int argc, char** argv)
     ofp << content_queue.size() << " ";
     ofp << nfetched << " ";
     ofp << nparsed << " ";
-    ofp << mem_sec.get_mem()/(1UL << 30) << std::endl;
+    ofp << mem_sec.get_mem()/(1UL << 20) << std::endl;
   }
 
   urlserver.join();

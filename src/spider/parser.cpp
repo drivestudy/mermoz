@@ -52,6 +52,8 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
     std::string http_status;
     mc::unpack(message, {&url, &content, &http_status});
 
+    message.clear();
+
     if (http_status.compare("0") == 0)
     {
       GumboOutput* output = gumbo_parse(content.c_str());
