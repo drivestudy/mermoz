@@ -49,7 +49,6 @@ This list is more or less like a memo:
 - `boost/program_options` basics,
 - `curl` fetch pages,
 - `gumbo` fast and reliable HTML5 parser,
-- `redis` distributed in-memory DB.
 
 ## Contributing
 Please first read [`CONTRIBUTING.md`](CONTRIBUTING.md) and propose what you want or you can fix or add functionalities detailed

@@ -53,8 +53,9 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
     mc::unpack(message, {&url, &content, &http_status});
 
     message.clear();
+    long http_code = atoi(http_status.c_str());
 
-    if (http_status.compare("0") == 0)
+    if (http_code >= 200 && http_code < 300)
     {
       GumboOutput* output = gumbo_parse(content.c_str());
 

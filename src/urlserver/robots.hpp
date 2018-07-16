@@ -35,8 +35,6 @@
 #include <string>
 #include <vector>
 
-#include <curl/curl.h>
-
 #include "common/common.hpp"
 
 namespace mermoz
@@ -59,7 +57,7 @@ public:
     std::ostringstream oss;
 
     long err;
-    if ((err = fetch_robots()) != CURLE_OK)
+    if ((err = fetch_robots()) < 200 && err >= 300)
     {
       oss << "Could not fetch robots.txt for: " << host;
       oss << " HTTP_ERROR(" << err << ")";
