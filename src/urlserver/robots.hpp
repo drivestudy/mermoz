@@ -75,6 +75,8 @@ public:
     }
   }
 
+  ~Robots() {}
+
   bool is_allowed(mermoz::common::UrlParser& up);
   bool is_allowed(std::string url);
 

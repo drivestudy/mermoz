@@ -58,6 +58,8 @@ public:
     parse();
   }
 
+  ~UrlParser() {}
+
   UrlParser& operator+=(UrlParser& rhs);
   UrlParser operator+(UrlParser& rhs);
 

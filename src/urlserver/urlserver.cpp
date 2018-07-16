@@ -152,9 +152,6 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
     std::string domain;
     robots_to_fetch->pop(domain);
 
-    std::ostringstream oss;
-    oss << "Number of robots saved: " << domain.size();
-    mc::print_strong_log(oss.str());
 
     if (domains.find(domain) != domains.end())
     {
@@ -162,11 +159,15 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
     }
     else
     {
+      std::ostringstream oss;
+      oss << "Number of robots saved: " << domains.size();
+      mc::print_strong_log(oss.str());
+
       ordered_domains.push(domain);
       domains.insert(domain);
     }
 
-    if (domains.size() > 100000)
+    if (domains.size() > 1000)
     {
       robots->erase(ordered_domains.front());
       domains.erase(ordered_domains.front());
