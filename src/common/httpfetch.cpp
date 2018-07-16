@@ -86,8 +86,6 @@ long curl_wraper(std::string& url,
 
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
 
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-
     res = curl_easy_perform(curl);
 
     char *ct = NULL;
@@ -96,6 +94,8 @@ long curl_wraper(std::string& url,
     if (ct)
       if (std::string(ct).find("text") == std::string::npos)
         content.clear();
+
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
   }
 
   curl_easy_cleanup(curl);
