@@ -60,17 +60,15 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   {
     std::string content;
     bool res = content_queue->pop_for(content, 1000);
+    (*mem_sec) -= content.size();
 
     if (res)
     {
-      (*mem_sec) -= content.size();
       std::string url;
       std::string text;
       std::string links;
       std::string http_status;
       mc::unpack(content, {&url, &text, &links, &http_status});
-
-      mc::UrlParser root(url);
 
       std::set<std::string>::iterator it;
       if ((it = to_visit.find(url)) != to_visit.end())
@@ -79,8 +77,8 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         (*mem_sec) -= it->size();
       }
 
-      visited.insert(url);
       (*mem_sec) += url.size();
+      visited.insert(url);
 
       // parsing the incoming string
       std::string link;
@@ -92,12 +90,14 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
               && to_visit.find(link) == to_visit.end()
               && parsed_urls.find(link) == parsed_urls.end())
           {
+            (*mem_sec) += link.size();
             parsed_urls.insert(link);
-            (*mem_sec) -= url.size();
           }
+
           link.clear();
           continue;
         }
+
         link.push_back(c);
       }
     }
@@ -127,9 +127,9 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
         if (is_ok)
         {
+          (*mem_sec) += 2*it->size();
           url_queue->push(*it);
           to_visit.insert(*it);
-          (*mem_sec) += 2*it->size();
         }
 
         it = parsed_urls.erase(it);
@@ -153,7 +153,9 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
     robots_to_fetch->pop(domain);
 
     if (domains.find(domain) != domains.end())
+    {
       continue;
+    }
     else
     {
       ordered_domains.push(domain);

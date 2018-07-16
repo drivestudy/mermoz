@@ -62,12 +62,18 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       std::string raw_links = get_links(output->root);
       std::string formated_urls;
       url_formating(url, raw_links, formated_urls);
+      raw_links.clear();
 
-      text.clear(); // testing without data
+      /** 
+       * For now on we just test the exploration
+       * mechanism, clear text is deleted
+       */
+      text.clear();
+      /**
+       * To remove if you need data for indexing
+       */
 
       mc::pack(message, {&url, &text, &formated_urls, &http_status});
-
-      parsed_queue->push(message);
 
       gumbo_destroy_output(&kGumboDefaultOptions, output);
     }
@@ -75,10 +81,10 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
     {
       std::string text, links;
       mc::pack(message, {&url, &text, &links, &http_status});
-      parsed_queue->push(message);
     }
 
     (*mem_sec) += message.size();
+    parsed_queue->push(message);
 
     ++(*nparsed);
   }
@@ -198,18 +204,9 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
           && link.find(",") == std::string::npos)
       {
         mc::UrlParser up(link);
-        if ((up.scheme.empty() && !up.authority.empty()) ||
-            (up.scheme.empty() && up.authority.empty()))
-        {
-          try
-          {
-            up += root;
-          }
-          catch(...)
-          {
-            std::cout << "cannot add " << link << std::endl;
-          }
-        }
+
+        if (!up.complete_url)
+          up += root;
 
         if (up.valid_scheme({"http", "https"}))
           formated_urls.append(up.get_url(false, false)).append(",");
