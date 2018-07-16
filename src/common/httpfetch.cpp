@@ -96,9 +96,9 @@ long curl_wraper(std::string& url,
     if (ct)
       if (std::string(ct).find("text") == std::string::npos)
         content.clear();
-
-    curl_easy_cleanup(curl);
   }
+
+  curl_easy_cleanup(curl);
 
   return http_code;
 }

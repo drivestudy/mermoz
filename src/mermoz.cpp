@@ -33,7 +33,9 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+
 #include <unistd.h>
+#include <curl/curl.h>
 
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
@@ -90,6 +92,9 @@ int main (int argc, char** argv)
   seedfile.close();
 
   mc::AsyncQueue<std::string> content_queue;
+
+  /* Must initialize libcurl before any threads are started */
+  curl_global_init(CURL_GLOBAL_ALL);
 
   std::thread urlserver(mu::urlserver,
                         &content_queue,

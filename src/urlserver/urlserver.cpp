@@ -167,7 +167,7 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
       domains.insert(domain);
     }
 
-    if (domains.size() > 1000)
+    if (domains.size() > 10000)
     {
       robots->erase(ordered_domains.front());
       domains.erase(ordered_domains.front());

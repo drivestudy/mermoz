@@ -1,6 +1,6 @@
 CC = g++
-#OPT = -std=c++11 -O3 -pthread
-OPT = -std=c++14 -g -pthread
+OPT = -std=c++14 -O3 -pthread
+#OPT = -std=c++14 -g -pthread
 INC = -I src/.
 LIB = -lgumbo -lboost_program_options -lcurl
 
