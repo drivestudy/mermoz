@@ -52,14 +52,6 @@ long http_fetch(std::string& url,
   url = up.get_url();
   long res = curl_wraper(url, header, content, time_out, user_agent);
 
-  if (res == -1)
-  {
-    std::ostringstream oss;
-    oss << "Cannot establish connection to " << url;
-    oss << " (" << res << "/" << content.size() << ")";
-    mermoz::common::print_error(oss.str());
-  }
-
   if (res >= 300 && res < 400)
   {
     std::istringstream iss(header);
@@ -76,29 +68,16 @@ long http_fetch(std::string& url,
 
     if (line.size() > pos + 10)
     {
-      std::ostringstream oss;
-      oss << "Redirection for " << url;
-
       url = line.substr(pos + 10);
       UrlParser tmpup(url);
 
       url = tmpup.get_url();
-
-      oss << " to " << url;
-      print_strong_log(oss.str());
 
       content.clear();
       header.clear();
 
       res = curl_wraper(url, header, content, time_out, user_agent);
     }
-  }
-
-  if (res < 200 || res >= 400)
-  {
-    std::ostringstream oss;
-    oss << "Failed to reach " << url << " (" << res << ")";
-    mermoz::common::print_warning(oss.str());
   }
 
   return res;

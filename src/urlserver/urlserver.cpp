@@ -118,7 +118,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         bool is_ok {false};
         try
         {
-          is_ok = robots[up.domain].is_allowed(*it);
+          is_ok = robots[up.domain].is_allowed(up);
         }
         catch(...)
         {
@@ -151,7 +151,6 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
   {
     std::string domain;
     robots_to_fetch->pop(domain);
-
 
     if (domains.find(domain) != domains.end())
     {

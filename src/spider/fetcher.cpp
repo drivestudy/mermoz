@@ -50,7 +50,11 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
     (*mem_sec) -= url.size();
 
     std::string content;
-    long http_code = mc::http_fetch(url, content, 5L, user_agent);
+#   ifdef MMZ_PROFILE
+    long http_code = mc::http_fetch(url, content, 60L, user_agent);
+#   else
+    long http_code = mc::http_fetch(url, content, 10L, user_agent);
+#   endif
 
     std::string http_code_string(std::to_string(http_code));
 

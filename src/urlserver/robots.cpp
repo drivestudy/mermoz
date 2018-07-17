@@ -75,7 +75,11 @@ long Robots::fetch_robots()
   std::string robots_url = host;
   robots_url.append("/robots.txt");
 
-  long http_code = mc::http_fetch(robots_url, robots_file, 5L, user_agent_full);
+# ifdef MMZ_PROFILE
+  long http_code = mc::http_fetch(robots_url, robots_file, 60L, user_agent_full);
+# else
+  long http_code = mc::http_fetch(robots_url, robots_file, 10L, user_agent_full);
+# endif
 
   return http_code;
 }
