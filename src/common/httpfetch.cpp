@@ -43,7 +43,7 @@ long http_fetch(std::string& url,
                 const std::string user_agent)
 {
 # ifdef MMZ_PROFILE
-  HeapProfilerStart("httpfetch");
+  HeapProfilerDump("fetching");
 # endif
 
   UrlParser up(url);
@@ -67,10 +67,6 @@ long http_fetch(std::string& url,
 
     print_strong_log(oss.str());
   }
-
-# ifdef MMZ_PROFILE
-  HeapProfilerStop();
-# endif
 
   return res;
 }
