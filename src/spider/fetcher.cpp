@@ -27,6 +27,7 @@
  */
 
 #include <ctime>
+#include <csignal>
 #include "spider/fetcher.hpp"
 
 namespace mc = mermoz::common;
@@ -43,6 +44,8 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
              mc::MemSec* mem_sec,
              bool* do_fetch)
 {
+  std::signal(SIGPIPE, SIG_IGN);
+
   while (*do_fetch)
   {
     std::string url;

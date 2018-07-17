@@ -71,6 +71,9 @@ long http_fetch(std::string& url,
       url = line.substr(pos + 10);
       UrlParser tmpup(url);
 
+      if (!tmpup.complete_url)
+        tmpup += up;
+
       url = tmpup.get_url();
 
       content.clear();

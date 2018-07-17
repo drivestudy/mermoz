@@ -30,6 +30,7 @@
 
 #include <curl/curl.h>
 #include <ctime>
+#include <csignal>
 
 namespace mc = mermoz::common;
 
@@ -44,6 +45,8 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
                mc::MemSec* mem_sec,
                bool* status)
 {
+  std::signal(SIGPIPE, SIG_IGN);
+
   std::set<std::string> visited;
   std::set<std::string> to_visit;
   std::set<std::string> parsed_urls;

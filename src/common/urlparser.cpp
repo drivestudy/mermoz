@@ -274,7 +274,8 @@ std::string UrlParser::get_url(bool get_query, bool get_fragment)
     if (!elem.empty() || elem.compare(" ") == 0)
       out_url.append(elem).append("/");
 
-  out_url.pop_back(); // remove last '/'
+  if(!out_url.empty())
+    out_url.pop_back(); // remove last '/'
 
   if (get_query)
   {
