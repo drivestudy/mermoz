@@ -42,10 +42,6 @@ long http_fetch(std::string& url,
                 long time_out,
                 const std::string user_agent)
 {
-# ifdef MMZ_PROFILE
-  HeapProfilerDump("fetching");
-# endif
-
   UrlParser up(url);
 
   if (up.scheme.empty())
@@ -58,6 +54,7 @@ long http_fetch(std::string& url,
   {
     std::ostringstream oss;
     oss << "Exchange scheme [HTTP/HTTPS] for " << url;
+    oss << " (" << res << ")";
 
     up.exchange("https", "http");
     url = up.get_url();
