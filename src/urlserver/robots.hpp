@@ -71,6 +71,9 @@ public:
       mermoz::common::print_error(oss.str());
       return;
     }
+
+    oss << "Added robot: " << host;
+    mermoz::common::print_log(oss.str());
   }
 
   ~Robots() {}
