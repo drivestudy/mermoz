@@ -47,6 +47,7 @@ MemSec& MemSec::operator+=(uint64_t mem)
   }
 
   cur_mem += mem;
+  return *this;
 }
 
 MemSec& MemSec::operator-=(uint64_t mem)
@@ -62,6 +63,7 @@ MemSec& MemSec::operator-=(uint64_t mem)
   }
 
   cond.notify_one();
+  return *this;
 }
 
 bool MemSec::is_critic()

@@ -49,8 +49,8 @@ public:
   UrlParser () : UrlParser("") {}
 
   UrlParser (std::string url) :
-    url(url), complete_url(false), inherit_scheme(false),
-    inherit_auth(false), inherit_path(false),
+    url(url), inherit_scheme(false), inherit_auth(false),
+    inherit_path(false), complete_url(false),
     do_parse(true), do_scheme(false), do_authority(false),
     do_path(false), do_query(false), do_fragment(false)
   {

@@ -262,30 +262,30 @@ bool UrlParser::operator<=(const UrlParser& rhs)
 
 std::string UrlParser::get_url(bool get_query, bool get_fragment)
 {
-  std::string url;
+  std::string out_url;
 
   if (!scheme.empty())
-    url.append(scheme).append("://");
+    out_url.append(scheme).append("://");
 
   if (!authority.empty())
-    url.append(authority).append("/");
+    out_url.append(authority).append("/");
 
   for (auto& elem : path_tree)
     if (!elem.empty() || elem.compare(" ") == 0)
-      url.append(elem).append("/");
+      out_url.append(elem).append("/");
 
-  url.pop_back(); // remove last '/'
+  out_url.pop_back(); // remove last '/'
 
   if (get_query)
   {
     if (!query.empty() && !query_args.empty())
     {
-      url.append("?");
+      out_url.append("?");
       for (auto& elem : query_args)
         if (!elem.empty())
-          url.append(elem).append("&");
+          out_url.append(elem).append("&");
 
-      url.pop_back(); // remove last '&'
+      out_url.pop_back(); // remove last '&'
     }
   }
 
@@ -293,11 +293,11 @@ std::string UrlParser::get_url(bool get_query, bool get_fragment)
     if (!fragment.empty())
       fragment.append("#").append(fragment);
 
-  if (!url.empty())
-    if (((unsigned char) *(url.end()-1)) < 0x20)
-      url.pop_back();
+  if (!out_url.empty())
+    if (((unsigned char) *(out_url.end()-1)) < 0x20)
+      out_url.pop_back();
 
-  return url;
+  return out_url;
 }
 
 void UrlParser::exchange(std::string scheme1, std::string scheme2)

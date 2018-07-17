@@ -49,7 +49,7 @@ public:
 
   Robots(std::string host, std::string user_agent, std::string user_agent_full) :
     host(host), user_agent(user_agent), user_agent_full(user_agent_full),
-    up_host(mermoz::common::UrlParser(host)), crawl_delay(4)
+    crawl_delay(4), up_host(mermoz::common::UrlParser(host))
   {
     if (host.empty())
       return;

@@ -51,8 +51,6 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   mc::AsyncQueue<std::string> robots_to_fetch;
   mc::AsyncMap<std::string, Robots> robots;
 
-  size_t counter {0};
-
   std::thread t(robot_manager, &robots_to_fetch, &robots, user_agent, status);
   t.detach();
 
@@ -147,7 +145,7 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
   std::queue<std::string> ordered_domains;
   std::set<std::string> domains;
 
-  while (&status)
+  while (*status)
   {
     std::string domain;
     robots_to_fetch->pop(domain);
