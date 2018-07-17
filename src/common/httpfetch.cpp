@@ -28,6 +28,10 @@
 
 #include "common/httpfetch.hpp"
 
+#ifdef MMZ_PROFILE
+#include <gperftools/heap-profiler.h>
+#endif
+
 namespace mermoz
 {
 namespace common
@@ -38,6 +42,10 @@ long http_fetch(std::string& url,
                 long time_out,
                 const std::string user_agent)
 {
+  #ifdef MMZ_PROFILE
+  HeapProfilerStart();
+  #endif
+
   UrlParser up(url);
 
   if (up.scheme.empty())
@@ -59,6 +67,10 @@ long http_fetch(std::string& url,
 
     print_strong_log(oss.str());
   }
+
+  #ifdef MMZ_PROFILE
+  HeapProfilerStop();
+  #endif
 
   return res;
 }
