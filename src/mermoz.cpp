@@ -37,6 +37,10 @@
 #include <unistd.h>
 #include <curl/curl.h>
 
+#ifdef MMZ_PROFILE
+#include <gperftools/heap-profiler.h>
+#endif
+
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
@@ -51,6 +55,10 @@ namespace mu = mermoz::urlserver;
 
 int main (int argc, char** argv)
 {
+# ifdef MMZ_PROFILE
+  HeapProfilerStart("mmz");
+# endif
+
   po::options_description desc("Allowed options");
   desc.add_options()
   ("help", "displays this message")
@@ -137,6 +145,10 @@ int main (int argc, char** argv)
     ofp << nparsed << " ";
     ofp << mem_sec.get_mem()/(1UL << 20) << std::endl;
   }
+
+# ifdef MMZ_PROFILE
+  HeapProfilerStop();
+# endif
 
   urlserver.join();
   spider.join();

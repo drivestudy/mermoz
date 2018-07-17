@@ -293,6 +293,10 @@ std::string UrlParser::get_url(bool get_query, bool get_fragment)
     if (!fragment.empty())
       fragment.append("#").append(fragment);
 
+  if (!url.empty())
+    if (((unsigned char) *(url.end()-1)) < 0x20)
+      url.pop_back();
+
   return url;
 }
 

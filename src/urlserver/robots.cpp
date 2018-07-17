@@ -76,7 +76,6 @@ long Robots::fetch_robots()
   robots_url.append("/robots.txt");
 
   long http_code = mc::http_fetch(robots_url, robots_file, 5L, user_agent_full);
-  mc::print_log(robots_url);
 
   return http_code;
 }

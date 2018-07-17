@@ -44,19 +44,18 @@ class AsyncMap
 {
 public:
   using ValueType = std::pair<const KeyType, MappedType>;
+  using iterator = typename std::map<KeyType, MappedType>::iterator;
 
   AsyncMap() {}
   ~AsyncMap() {}
 
   MappedType& operator[](const KeyType& key);
 
-  std::pair<typename std::map<KeyType, MappedType>::iterator,bool> insert(const ValueType& val); 
-
+  template <class... Args>
+    std::pair<iterator, bool> emplace (Args&&... args);
   void erase(const KeyType& k);
-
-  typename std::map<KeyType, MappedType>::iterator find(const KeyType& k);
-
-  typename std::map<KeyType, MappedType>::iterator end();
+  iterator find(const KeyType& k);
+  iterator end();
 
   size_t size();
 
@@ -74,22 +73,24 @@ MappedType& AsyncMap<KeyType, MappedType>::operator[](const KeyType& key)
 }
 
 template<typename KeyType, typename MappedType>
-std::pair<typename std::map<KeyType, MappedType>::iterator,bool>
-AsyncMap<KeyType, MappedType>::insert(const ValueType& val) 
-{
-  std::unique_lock<std::mutex> mlock(mutex);
-  return map.insert(val);
-}
-
-template<typename KeyType, typename MappedType>
 void AsyncMap<KeyType, MappedType>::erase(const KeyType& k)
 {
   std::unique_lock<std::mutex> mlock(mutex);
   map.erase(k);
 }
 
+
 template<typename KeyType, typename MappedType>
-typename std::map<KeyType, MappedType>::iterator
+template <class... Args>
+std::pair<typename AsyncMap<KeyType, MappedType>::iterator, bool>
+AsyncMap<KeyType, MappedType>::emplace (Args&&... args)
+{
+  std::unique_lock<std::mutex> mlock(mutex);
+  return map.emplace(args ...);
+}
+
+template<typename KeyType, typename MappedType>
+typename AsyncMap<KeyType, MappedType>::iterator
 AsyncMap<KeyType, MappedType>::find(const KeyType& k)
 {
   std::unique_lock<std::mutex> mlock(mutex);
@@ -97,7 +98,7 @@ AsyncMap<KeyType, MappedType>::find(const KeyType& k)
 }
 
 template<typename KeyType, typename MappedType>
-typename std::map<KeyType, MappedType>::iterator
+typename AsyncMap<KeyType, MappedType>::iterator
 AsyncMap<KeyType, MappedType>::end()
 {
   return map.end();

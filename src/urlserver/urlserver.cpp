@@ -159,10 +159,6 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
     }
     else
     {
-      std::ostringstream oss;
-      oss << "Number of robots saved: " << domains.size();
-      mc::print_strong_log(oss.str());
-
       ordered_domains.push(domain);
       domains.insert(domain);
     }
@@ -174,8 +170,7 @@ void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
       ordered_domains.pop();
     }
 
-    robots->insert(std::pair<std::string, Robots>(domain,
-                   Robots("http://" + domain, "Qwantify", user_agent)));
+    robots->emplace(domain, Robots("http://" + domain, "Qwantify", user_agent));
   }
 }
 
