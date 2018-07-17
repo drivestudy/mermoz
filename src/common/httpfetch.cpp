@@ -47,28 +47,65 @@ long http_fetch(std::string& url,
   if (up.scheme.empty())
     up.scheme = "http";
 
-  url = up.get_url();
-  long res = curl_wraper(url, content, time_out, user_agent);
+  std::string header;
 
-  if (res < 200 || res >= 300)
+  url = up.get_url();
+  long res = curl_wraper(url, header, content, time_out, user_agent);
+
+  if (res == -1)
   {
     std::ostringstream oss;
-    oss << "Exchange scheme [HTTP/HTTPS] for " << url;
-    oss << " (" << res << ")";
+    oss << "Cannot establish connection to " << url;
+    oss << " (" << res << "/" << content.size() << ")";
+    mermoz::common::print_error(oss.str());
+  }
 
-    up.exchange("https", "http");
-    url = up.get_url();
+  if (res >= 300 && res < 400)
+  {
+    std::istringstream iss(header);
+    size_t pos;
+    std::string line;
 
-    content.clear();
-    res = curl_wraper(url, content, time_out, user_agent);
+    while (!iss.eof())
+    {
+      line.clear();
+      std::getline(iss, line);
+      if ((pos = line.find("Location:")) != std::string::npos)
+        break;
+    }
 
-    print_strong_log(oss.str());
+    if (line.size() > pos + 10)
+    {
+      std::ostringstream oss;
+      oss << "Redirection for " << url;
+
+      url = line.substr(pos + 10);
+      UrlParser tmpup(url);
+
+      url = tmpup.get_url();
+
+      oss << " to " << url;
+      print_strong_log(oss.str());
+
+      content.clear();
+      header.clear();
+
+      res = curl_wraper(url, header, content, time_out, user_agent);
+    }
+  }
+
+  if (res < 200 || res >= 400)
+  {
+    std::ostringstream oss;
+    oss << "Failed to reach " << url << " (" << res << ")";
+    mermoz::common::print_warning(oss.str());
   }
 
   return res;
 }
 
 long curl_wraper(std::string& url,
+                 std::string& header,
                  std::string& content,
                  long time_out,
                  const std::string user_agent)
@@ -84,23 +121,32 @@ long curl_wraper(std::string& url,
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_function);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
+
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, write_function);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header);
 
     curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
 
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, time_out);
 
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &content);
-
     res = curl_easy_perform(curl);
 
-    char *ct = NULL;
-    res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
+    if (res == CURLE_OK)
+    {
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
 
-    if (ct)
-      if (std::string(ct).find("text") == std::string::npos)
-        content.clear();
+      char *ct = NULL;
+      res = curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &ct);
 
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+      if (ct)
+        if (std::string(ct).find("text") == std::string::npos)
+          content.clear();
+    }
+    else
+    {
+      http_code = res;
+    }
   }
 
   curl_easy_cleanup(curl);

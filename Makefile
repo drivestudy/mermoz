@@ -3,7 +3,11 @@ CC = g++
 OPT = -std=c++14 -g -pthread
 INC = -I src/.
 LIB = -lgumbo -lboost_program_options -lcurl -ltcmalloc
+<<<<<<< HEAD
 PROF = -DMMZ_PROFILE
+=======
+#PROF = -DMMZ_PROFILE
+>>>>>>> master
 
 LIBMERMOZ = build/libmermoz.a
 
