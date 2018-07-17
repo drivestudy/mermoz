@@ -54,7 +54,7 @@ long http_fetch(std::string& url,
   url = up.get_url();
   long res = curl_wraper(url, content, time_out, user_agent);
 
-  if (res < 200 && res >= 300)
+  if (res < 200 || res >= 300)
   {
     std::ostringstream oss;
     oss << "Exchange scheme [HTTP/HTTPS] for " << url;

@@ -57,7 +57,7 @@ public:
     std::ostringstream oss;
 
     long err;
-    if ((err = fetch_robots()) < 200 && err >= 300)
+    if ((err = fetch_robots()) < 200 || err >= 300)
     {
       oss << "Could not fetch robots.txt for: " << host;
       oss << " HTTP_ERROR(" << err << ")";
