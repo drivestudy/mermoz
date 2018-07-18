@@ -50,7 +50,10 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
   else if (!complete_url)
   {
     if (inherit_scheme)
+    {
       scheme = rhs.scheme;
+      inherit_scheme = false;
+    }
 
     if (inherit_auth)
     {
@@ -59,10 +62,15 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
       pass = rhs.pass;
       domain = rhs.domain;
       port = rhs.port;
+
+      inherit_auth = false;
     }
 
     if (inherit_path)
+    {
       path_tree.insert(path_tree.begin(), rhs.path_tree.begin(), rhs.path_tree.end());
+      inherit_path = false;
+    }
   }
   else if (!rhs.complete_url)
   {
@@ -88,6 +96,8 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
       fragment = rhs.fragment;
     }
   }
+
+  complete_url = !inherit_scheme && !inherit_auth && !inherit_path;
 
   // Cleanning up the path_tree vector
   std::vector<std::string>::iterator i = this->path_tree.begin();
@@ -152,6 +162,10 @@ std::ostream& operator<<(std::ostream& os, const UrlParser& rhs)
     os << "  &       " << elem << std::endl;
   }
   os << "fragment  " << rhs.fragment << std::endl;
+  os << "i_scheme  " << rhs.inherit_scheme << std::endl;
+  os << "i_auth    " << rhs.inherit_auth << std::endl;
+  os << "i_path    " << rhs.inherit_path << std::endl;
+  os << "complete  " << rhs.complete_url << std::endl;
 
   return os;
 }

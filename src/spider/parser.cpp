@@ -143,11 +143,11 @@ std::string get_links(GumboNode* node)
     std::string link = get_links(static_cast<GumboNode*>(children->data[i]));
     if (i != 0 && !link.empty())
     {
-      while (*link.begin() == ',' && !link.empty())
+      while (*link.begin() == '\n' && !link.empty())
       {
         link.erase(link.begin());
       }
-      links.append(",");
+      links.append("\n");
     }
     links.append(link);
   }
@@ -196,13 +196,19 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
 
   mc::UrlParser root(root_url);
 
+  std::istringstream iss(raw_urls);
   std::string link;
-  for (auto c : raw_urls)
+
+  while (!iss.eof())
   {
-    if (c == ' ' || c == ',')
+    link.clear();
+    std::getline(iss, link);
+
+    if (link.size() > 1)
     {
-      if (!link.empty()
-          && link.find("javascript") == std::string::npos
+      link.pop_back(); // removes the \n
+
+      if (link.find("javascript") == std::string::npos
           && link.find("mailto") == std::string::npos
           && link.find(",") == std::string::npos)
       {
@@ -212,20 +218,17 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
           up += root;
 
         if (up.valid_scheme({"http", "https"}))
-          formated_urls.append(up.get_url(false, false)).append(",");
+          formated_urls.append(up.get_url(false, false)).append("\n");
       }
-
-      link.clear();
-      continue;
     }
     else
     {
-      link.push_back(c);
+      continue;
     }
   }
 
   if (!formated_urls.empty())
-    formated_urls.pop_back(); // removes last comma
+    formated_urls.pop_back(); // removes last \n
 }
 
 } // namespace spider
