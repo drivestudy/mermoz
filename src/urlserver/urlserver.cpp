@@ -90,8 +90,6 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
         if (link.size() > 1)
         {
-          link.pop_back(); // removes the \n
-
           if (visited.find(link) == visited.end()
               && to_visit.find(link) == to_visit.end()
               && parsed_urls.find(link) == parsed_urls.end())

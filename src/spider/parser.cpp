@@ -206,8 +206,6 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
 
     if (link.size() > 1)
     {
-      link.pop_back(); // removes the \n
-
       if (link.find("javascript") == std::string::npos
           && link.find("mailto") == std::string::npos
           && link.find(",") == std::string::npos)
