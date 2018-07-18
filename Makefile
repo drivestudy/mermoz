@@ -4,6 +4,7 @@ OPT = -std=c++14 -Wall -O3 -pthread
 INC = -I src/.
 LIB = -lgumbo -lboost_program_options -lcurl -ltcmalloc
 #PROF = -DMMZ_PROFILE
+VERB = -DMMZ_VERBOSE
 
 LIBMERMOZ = build/libmermoz.a
 
@@ -22,13 +23,13 @@ BINLIST = src/common/urlparser.o src/common/packer.o src/common/logs.o\
 					src/spider/fetcher.o
 
 %.o: %.cpp
-	$(CC) $(OPT) $(PROF) $(INC) -c -o $@ $^
+	$(CC) $(OPT) $(PROF) $(VERB) $(INC) -c -o $@ $^
 
 $(LIBMERMOZ): $(BINLIST)
 	ar rcs $@ $^
 
 mermoz: src/mermoz.cpp
-	$(CC) $(OPT) $(PROF) $(INC) -o build/$@ $^ $(LIBMERMOZ) $(LIB) 
+	$(CC) $(OPT) $(PROF) $(VERB) $(INC) -o build/$@ $^ $(LIBMERMOZ) $(LIB) 
 
 examples: urlparser robots
 
