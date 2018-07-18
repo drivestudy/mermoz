@@ -5,13 +5,13 @@ Web crawler for multi-threaded computers
 Compile the code by doing `make` and then launch it:
 ```
 $ cd build
-$ ./mermoz --parsers N --fetchers M --seed URL --user-agent UA
+$ ./mermoz --settings file --seeds file
 ```
 
 ## Webmasters? :computer: 
 Probably, you see us crawling your website, we announce ourselves as:
 ```
-Mozilla/5.0 (compatible; Qwantify/Mermoz/0.2; +https://www.qwant.com/; +https://www.github.com/QwantResearch/mermoz)
+Mozilla/5.0 (compatible; Qwantify/Mermoz/0.1; +https://www.qwant.com/; +https://www.github.com/QwantResearch/mermoz)
 ```
 with the following IPs `194.187.171.0/24`.
 

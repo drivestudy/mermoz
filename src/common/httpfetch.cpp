@@ -47,14 +47,18 @@ long http_fetch(std::string& url,
   if (up.scheme.empty())
     up.scheme = "http";
 
-  std::string header;
-
   url = up.get_url();
-  long res = curl_wraper(url, header, content, time_out, user_agent);
 
-  if (res >= 300 && res < 400)
+  std::string header;
+  long res;
+  int redirect {0};
+
+  while ((res = curl_wraper(url, header, content, time_out, user_agent)) >= 300
+         && res < 400 
+         && redirect < 5)
   {
     std::istringstream iss(header);
+
     size_t pos;
     std::string line;
 
@@ -68,8 +72,7 @@ long http_fetch(std::string& url,
 
     if (line.size() > pos + 10)
     {
-      url = line.substr(pos + 10);
-      UrlParser tmpup(url);
+      UrlParser tmpup(line.substr(pos + 10));
 
       if (!tmpup.complete_url)
         tmpup += up;
@@ -78,9 +81,9 @@ long http_fetch(std::string& url,
 
       content.clear();
       header.clear();
-
-      res = curl_wraper(url, header, content, time_out, user_agent);
     }
+
+    redirect++;
   }
 
   return res;
@@ -129,9 +132,9 @@ long curl_wraper(std::string& url,
     {
       http_code = res;
     }
-  }
 
-  curl_easy_cleanup(curl);
+    curl_easy_cleanup(curl);
+  }
 
   return http_code;
 }
