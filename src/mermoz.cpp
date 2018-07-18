@@ -62,12 +62,8 @@ int main (int argc, char** argv)
   po::options_description desc("Allowed options");
   desc.add_options()
   ("help", "displays this message")
-  ("fetchers", po::value<int>(), "number of fetchers")
-  ("parsers", po::value<int>(), "number of parsers")
-  ("max-ram", po::value<int>(), "max RAM value in GB")
-  ("seeds", po::value<std::string>(), "file of urls from witch to begin")
-  ("user-agent", po::value<std::string>(), "announce youself")
-  ("kafka-file", po::value<std::string>(), "config file for the Kafka consumer & producer")
+  ("settings", po::value<std::string>(), "setting file for the whole Mermoz run")
+  ("seeds", po::value<std::string>(), "list of seeds for the current run")
   ;
 
   po::variables_map vmap;
@@ -83,7 +79,66 @@ int main (int argc, char** argv)
   bool status = true;
 
   mc::AsyncQueue<std::string> url_queue;
-  mc::MemSec mem_sec(vmap["max-ram"].as<int>() * mc::MemSec::GB);
+
+  size_t pos;
+  std::string line;
+  std::ifstream settingsfile(vmap["settings"].as<std::string>());
+
+  std::string user_agent;
+  int nfetchers {0};
+  int nparsers {0};
+  int max_ram {0};
+
+  while(!settingsfile.eof())
+  {
+    line.clear();
+    std::getline(settingsfile, line);
+
+    unsigned char c;
+    while ((c = *(line.end()-1)) < 0x20 && !line.empty())
+      line.pop_back();
+
+    if ((pos = line.find("fetchers")) != std::string::npos)
+      nfetchers = std::atoi(line.substr(pos + 9).c_str());
+    else if ((pos = line.find("parsers")) != std::string::npos)
+      nparsers = std::atoi(line.substr(pos + 8).c_str());
+    else if ((pos = line.find("user-agent")) != std::string::npos)
+      user_agent = line.substr(pos + 11);
+    else if ((pos = line.find("max-ram")) != std::string::npos)
+      max_ram = std::atoi(line.substr(pos + 8).c_str());
+  }
+  settingsfile.close();
+
+  if (user_agent.empty()
+      || nfetchers == 0
+      || nparsers == 0
+      || max_ram == 0)
+  {
+    mc::print_error("Wrong settings Mermoz cannot start");
+  }
+  else
+  {
+    mc::print_strong_log("Staring of Mermoz with following settings:");
+
+    std::ostringstream oss;
+
+    oss << "Fetchers: " << nfetchers;
+    mc::print_strong_log(oss.str());
+
+    oss.str("");
+    oss << "Parsers: " << nparsers;
+    mc::print_strong_log(oss.str());
+
+    oss.str("");
+    oss << "User-agent: " << user_agent;
+    mc::print_strong_log(oss.str());
+
+    oss.str("");
+    oss << "Max-ram (GB): " << max_ram;
+    mc::print_strong_log(oss.str());
+  }
+
+  mc::MemSec mem_sec(max_ram * mc::MemSec::GB);
 
   std::string link;
   std::ifstream seedfile(vmap["seeds"].as<std::string>());
@@ -107,7 +162,7 @@ int main (int argc, char** argv)
   std::thread urlserver(mu::urlserver,
                         &content_queue,
                         &url_queue,
-                        vmap["user-agent"].as<std::string>(),
+                        user_agent,
                         &mem_sec,
                         &status);
 
@@ -120,9 +175,9 @@ int main (int argc, char** argv)
   std::thread spider(ms::spider,
                      &url_queue,
                      &content_queue,
-                     vmap["fetchers"].as<int>(),
-                     vmap["parsers"].as<int>(),
-                     vmap["user-agent"].as<std::string>(),
+                     nfetchers,
+                     nparsers,
+                     user_agent,
                      &nfetched,
                      &nparsed,
                      &mem_sec,
@@ -130,7 +185,7 @@ int main (int argc, char** argv)
 
   std::ofstream ofp("log.out");
   
-  ofp << "# time urls contents fetched parsed" << std::endl;
+  ofp << "# time urls contents fetched parsed mem(MB)" << std::endl;
 
   while (status)
   {
