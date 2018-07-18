@@ -216,7 +216,7 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
           up += root;
 
         if (up.valid_scheme({"http", "https"}))
-          formated_urls.append(up.get_url(false, false)).append("\n");
+          formated_urls.append(up.get_url()).append("\n");
       }
     }
     else

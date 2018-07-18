@@ -389,7 +389,7 @@ bool UrlParser::parse()
     else if (do_fragment)
       parse_fragment(sb);
     else
-      return false;
+      break;
   }
 
   complete_url = !inherit_scheme && !inherit_auth && !inherit_path;
