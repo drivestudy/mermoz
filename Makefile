@@ -1,6 +1,6 @@
 CC = g++
-#OPT = -std=c++14 -O3 -pthread
-OPT = -std=c++14 -Wall -g -pthread
+OPT = -std=c++14 -Wall -O3 -pthread
+#OPT = -std=c++14 -Wall -g -pthread
 INC = -I src/.
 LIB = -lgumbo -lboost_program_options -lcurl -ltcmalloc
 #PROF = -DMMZ_PROFILE

@@ -112,7 +112,8 @@ bool AsyncQueue<ValueType>::pop_for(ValueType& val, const int time_ms)
 
   std::unique_lock<std::mutex> mlock(mutex);
 
-  std::cv_status res;
+  std::cv_status res {std::cv_status::no_timeout};
+
   if(queue.empty())
     res = cond.wait_for(mlock, time_ms*1ms);
 

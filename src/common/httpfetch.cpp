@@ -59,7 +59,7 @@ long http_fetch(std::string& url,
   {
     std::istringstream iss(header);
 
-    size_t pos;
+    size_t pos {std::string::npos};
     std::string line;
 
     while (!iss.eof())
@@ -70,7 +70,8 @@ long http_fetch(std::string& url,
         break;
     }
 
-    if (line.size() > pos + 10)
+    if (line.size() > pos + 10
+        && pos != std::string::npos)
     {
       UrlParser tmpup(line.substr(pos + 10));
 
@@ -81,9 +82,13 @@ long http_fetch(std::string& url,
 
       content.clear();
       header.clear();
-    }
 
-    redirect++;
+      redirect++;
+    }
+    else
+    {
+      break;
+    }
   }
 
   return res;
