@@ -292,11 +292,7 @@ std::string UrlParser::get_url(bool get_query, bool get_fragment)
 
   if (get_fragment)
     if (!fragment.empty())
-      fragment.append("#").append(fragment);
-
-  if (!out_url.empty())
-    if (((unsigned char) *(out_url.end()-1)) < 0x20)
-      out_url.pop_back();
+      out_url.append("#").append(fragment);
 
   return out_url;
 }
@@ -333,6 +329,12 @@ bool UrlParser::parse()
   }
 
   url = url.substr(pos);
+
+  // trim invalid chars
+  unsigned char c;
+  while (((c = *(url.end()-1)) < 0x20) && !url.empty())
+    url.pop_back();
+
 
   if (url[0] == '/')
   {
