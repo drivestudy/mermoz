@@ -73,12 +73,23 @@ long http_fetch(std::string& url,
     if (line.size() > pos + 10
         && pos != std::string::npos)
     {
-      UrlParser tmpup(line.substr(pos + 10));
+      url = line.substr(pos + 10);
+
+      unsigned char c;
+      while ((c = *(url.end()-1)) < 0x20 && !url.empty())
+        url.pop_back();
+
+      bool has_final_slash = *(url.end()-1) == '/';
+
+      UrlParser tmpup(url);
 
       if (!tmpup.complete_url)
         tmpup += up;
 
       url = tmpup.get_url();
+
+      if (has_final_slash)
+        url.append("/");
 
       content.clear();
       header.clear();
