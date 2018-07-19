@@ -68,7 +68,11 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
 
     if (inherit_path)
     {
-      path_tree.insert(path_tree.begin(), rhs.path_tree.begin(), rhs.path_tree.end());
+      if (rhs.is_file)
+        path_tree.insert(path_tree.begin(), rhs.path_tree.begin(), rhs.path_tree.end()-1);
+      else
+        path_tree.insert(path_tree.begin(), rhs.path_tree.begin(), rhs.path_tree.end());
+
       inherit_path = false;
     }
   }
@@ -88,7 +92,13 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
 
     if (rhs.inherit_path)
     {
+      if (is_file && !path_tree.empty())
+        path_tree.pop_back();
+
       path_tree.insert(path_tree.end(), rhs.path_tree.begin(), rhs.path_tree.end());
+      
+      is_file = rhs.is_file;
+      has_final_slash = rhs.has_final_slash;
 
       query = rhs.query;
       query_args = rhs.query_args;
@@ -130,7 +140,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
     path.append("/");
   }
   // Removes the last "/"
-  if (!this->path.empty())
+  if (!this->path.empty() && !has_final_slash)
     path.pop_back();
 
   return *this;
@@ -288,7 +298,7 @@ std::string UrlParser::get_url(bool get_query, bool get_fragment)
     if (!elem.empty() || elem.compare(" ") == 0)
       out_url.append(elem).append("/");
 
-  if(!out_url.empty())
+  if(!out_url.empty() && !has_final_slash)
     out_url.pop_back(); // remove last '/'
 
   if (get_query)
@@ -565,6 +575,13 @@ void UrlParser::parse_path(std::streambuf* sb)
   }
 
   path_tree.push_back(path.substr(slash_pos + 1, pos - slash_pos - 1));
+
+  if (path_tree.size() > 1)
+  {
+    has_final_slash = (path_tree.end()-1)->empty();
+    if (!has_final_slash)
+      is_file = (path_tree.end()-1)->find(".") != std::string::npos;
+  }
 
   if (path.empty())
   {

@@ -112,6 +112,7 @@ int main (int argc, char** argv)
   }
 
   std::cout << up_left;
+  std::cout << up_left.get_url();
 
   return 0;
 }

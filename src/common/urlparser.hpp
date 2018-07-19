@@ -50,9 +50,10 @@ public:
 
   UrlParser (std::string url) :
     url(url), inherit_scheme(false), inherit_auth(false),
-    inherit_path(false), complete_url(false),
-    do_parse(true), do_scheme(false), do_authority(false),
-    do_path(false), do_query(false), do_fragment(false)
+    inherit_path(false), complete_url(false), is_file(false),
+    has_final_slash (false), do_parse(true), do_scheme(false),
+    do_authority(false), do_path(false), do_query(false),
+    do_fragment(false)
   {
     if (url.empty()) return;
     parse();
@@ -90,6 +91,9 @@ public:
   bool inherit_auth;
   bool inherit_path;
   bool complete_url;
+
+  bool is_file;
+  bool has_final_slash;
 
   std::string scheme;
 
