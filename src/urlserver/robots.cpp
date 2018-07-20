@@ -67,6 +67,8 @@ bool Robots::is_allowed(std::string url)
 
 void Robots::async_initialize(Robots* rbt)
 {
+  bool private_is_good {false};
+
   if (!rbt->host.empty())
   {
     std::string robotstxt;
@@ -76,10 +78,9 @@ void Robots::async_initialize(Robots* rbt)
 
     if (http_code >= 200 && http_code < 300)
     {
-      rbt->is_good = true;
-      rbt->is_empty = robotstxt.empty();
+      private_is_good = true;
 
-      if (!rbt->is_empty)
+      if (!robotstxt.empty())
         rbt->parse_file(rbt, robotstxt);
     }
     else if (http_code >= 400 && http_code < 500)
@@ -87,15 +88,15 @@ void Robots::async_initialize(Robots* rbt)
       // Why ? Because it means the 'robots.txt'
       // does not exists, so no rules are provided
       // and it is accepted case.
-      rbt->is_good = true;
+      private_is_good = true;
     }
     else
     {
-      rbt->is_good = false;
+      private_is_good = false;
     }
 
     std::ostringstream oss;
-    if (rbt->good())
+    if (private_is_good)
     {
       oss << "Valid \'robots\' rules: " << rbt->host;
       mc::print_log(oss.str());
@@ -105,6 +106,9 @@ void Robots::async_initialize(Robots* rbt)
       oss << "Invalid \'robots\' rules: " << rbt->host;
       mc::print_warning(oss.str());
     }
+
+    rbt->is_good = private_is_good;
+    rbt->is_empty = robotstxt.empty();
   }
 }
 
