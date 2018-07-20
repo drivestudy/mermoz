@@ -54,10 +54,7 @@ class Robots {
     user_agent(user_agent),
     user_agent_full(user_agent_full),
     crawl_delay(4),
-    up_host(std::move(mermoz::common::UrlParser(host))) {
-    std::thread t(init, this);
-    t.detach();
-  }
+    up_host(mermoz::common::UrlParser(host)) {}
 
   bool good() {
     return is_good;
@@ -69,6 +66,12 @@ class Robots {
 
   bool is_allowed(mermoz::common::UrlParser& up);
   bool is_allowed(std::string url);
+
+  void initialize() 
+  {
+    std::thread t(async_initialize, this);
+    t.detach();
+  }
 
  private:
   bool is_good;
@@ -83,10 +86,9 @@ class Robots {
   std::vector<mermoz::common::UrlParser> walls;
   std::vector<mermoz::common::UrlParser> doors;
 
-  static void init(Robots* rbt);
-
-  void fetch_robots(std::string& robotstxt, long& http_code);
-  void parse_file(std::string& robotstxt);
+  static void async_initialize(Robots* rbt);
+  static void fetch_robots(Robots* rbt, std::string& robotstxt, long& http_code);
+  static void parse_file(Robots* rbt, std::string& robotstxt);
 }; // class Robots
 
 } // namespace urlserver

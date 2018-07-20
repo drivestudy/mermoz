@@ -110,8 +110,9 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
   complete_url = !inherit_scheme && !inherit_auth && !inherit_path;
 
   // Cleanning up the path_tree vector
-  std::vector<std::string>::iterator i = this->path_tree.begin();
-  while (i != this->path_tree.end())
+  for (auto i = this->path_tree.begin();
+      i != this->path_tree.end();
+      )
   {
     if (i->empty())
     {
@@ -583,6 +584,14 @@ void UrlParser::parse_path(std::streambuf* sb)
   }
 
   path_tree.push_back(path.substr(slash_pos + 1, pos - slash_pos - 1));
+
+  for (auto pathit = path_tree.begin();
+      pathit != path_tree.end();
+      pathit++)
+  {
+    if (pathit->compare(".") == 0)
+      pathit = path_tree.erase(pathit);
+  }
 
   if (path_tree.size() > 1)
   {

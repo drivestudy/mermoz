@@ -65,14 +65,14 @@ bool Robots::is_allowed(std::string url)
   return is_allowed(up);
 }
 
-void Robots::init(Robots* rbt)
+void Robots::async_initialize(Robots* rbt)
 {
   if (!rbt->host.empty())
   {
     std::string robotstxt;
     long http_code;
 
-    rbt->fetch_robots(robotstxt, http_code);
+    rbt->fetch_robots(rbt, robotstxt, http_code);
 
     if (http_code >= 200 && http_code < 300)
     {
@@ -80,7 +80,7 @@ void Robots::init(Robots* rbt)
       rbt->is_empty = robotstxt.empty();
 
       if (!rbt->is_empty)
-        rbt->parse_file(robotstxt);
+        rbt->parse_file(rbt, robotstxt);
     }
     else if (http_code >= 400 && http_code < 500)
     {
@@ -93,34 +93,34 @@ void Robots::init(Robots* rbt)
     {
       rbt->is_good = false;
     }
-  }
 
-  std::ostringstream oss;
-  if (rbt->good())
-  {
-    oss << "Valid \'robots\' rules (" << rbt->host << ")";
-    mc::print_log(oss.str());
-  }
-  else
-  {
-    oss << "Invalid \'robots\' rules (" << rbt->host << ")";
-    mc::print_warning(oss.str());
+    std::ostringstream oss;
+    if (rbt->good())
+    {
+      oss << "Valid \'robots\' rules: " << rbt->host;
+      mc::print_log(oss.str());
+    }
+    else
+    {
+      oss << "Invalid \'robots\' rules: " << rbt->host;
+      mc::print_warning(oss.str());
+    }
   }
 }
 
-void Robots::fetch_robots(std::string& robotstxt, long& http_code)
+void Robots::fetch_robots(Robots* rbt, std::string& robotstxt, long& http_code)
 {
-  std::string robots_url {host};
+  std::string robots_url = rbt->host;
   robots_url.append("/robots.txt");
 
 # ifdef MMZ_PROFILE
-  http_code = mc::http_fetch(robots_url, robotstxt, 60L, user_agent_full);
+  http_code = mc::http_fetch(robots_url, robotstxt, 60L, rbt->user_agent_full);
 # else
-  http_code = mc::http_fetch(robots_url, robotstxt, 10L, user_agent_full);
+  http_code = mc::http_fetch(robots_url, robotstxt, 10L, rbt->user_agent_full);
 # endif
 }
 
-void Robots::parse_file(std::string& robotstxt)
+void Robots::parse_file(Robots* rbt, std::string& robotstxt)
 {
   std::istringstream iss(robotstxt);
 
@@ -144,14 +144,14 @@ void Robots::parse_file(std::string& robotstxt)
       if (line.find("*") != std::string::npos)
       {
         read_settings = !has_generic &&
-          (walls.empty() || doors.empty());
+          (rbt->walls.empty() || rbt->doors.empty());
       }
-      else if (line.find(user_agent) != std::string::npos)
+      else if (line.find(rbt->user_agent) != std::string::npos)
       {
         if (has_generic)
         {
-          walls.empty();
-          doors.empty();
+          rbt->walls.empty();
+          rbt->doors.empty();
           has_generic = false;
         }
         read_settings = true;
@@ -169,17 +169,17 @@ void Robots::parse_file(std::string& robotstxt)
       if ((pos = line.find("Disallow:")) != std::string::npos)
       {
         if (line.size() > pos+9)
-          walls.push_back(mc::UrlParser(line.substr(pos+9)) + up_host);
+          rbt->walls.push_back(mc::UrlParser(line.substr(pos+9)) + rbt->up_host);
       }
       else if ((pos = line.find("Allow:")) != std::string::npos)
       {
         if (line.size() > pos+6)
-          doors.push_back(mc::UrlParser(line.substr(pos+6)) + up_host);
+          rbt->doors.push_back(mc::UrlParser(line.substr(pos+6)) + rbt->up_host);
       }
       else if ((pos = line.find("Crawl-delay:")) != std::string::npos)
       {
         if (line.size() > pos+12)
-          crawl_delay = std::max(crawl_delay, std::atoi(line.substr(pos+12).c_str()));
+          rbt->crawl_delay = std::max(rbt->crawl_delay, std::atoi(line.substr(pos+12).c_str()));
       }
     }
   }

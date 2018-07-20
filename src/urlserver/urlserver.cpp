@@ -53,25 +53,19 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
   std::map<std::string, Robots> robots;
 
-  std::string content;
-  std::string url;
-  std::string text;
-  std::string links;
-  std::string http_status;
-
   while (*status)
   {
-    content.clear();
+    std::string content;
     bool res = content_queue->pop_for(content, 1000);
 
     if (!content.empty() && res)
     {
       (*mem_sec) -= content.size();
 
-      url.clear();
-      text.clear();
-      links.clear();
-      http_status.clear();
+      std::string url;
+      std::string text;
+      std::string links;
+      std::string http_status;
 
       mc::unpack(content, {&url, &text, &links, &http_status});
 
@@ -116,6 +110,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       if ((mapit = robots.find(up.domain)) == robots.end())
       {
         robots.emplace(up.domain, Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent));
+        robots[up.domain].initialize();
       }
       else
       {
