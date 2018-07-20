@@ -34,68 +34,59 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <thread>
 
 #include "common/common.hpp"
 
-namespace mermoz
-{
-namespace urlserver
-{
+namespace mermoz {
+namespace urlserver {
 
-class Robots
-{
-public:
+class Robots {
+ public:
   Robots() : Robots("","","") {}
 
-  Robots(std::string host, std::string user_agent, std::string user_agent_full) :
-    host(host), user_agent(user_agent), user_agent_full(user_agent_full),
-    crawl_delay(4), up_host(mermoz::common::UrlParser(host))
-  {
-    if (host.empty())
-      return;
-
-    std::ostringstream oss;
-
-    long err;
-    if ((err = fetch_robots()) < 200 || err >= 300)
-    {
-      oss << "Could not fetch robots.txt for: " << host;
-      oss << " HTTP_ERROR(" << err << ")";
-      mermoz::common::print_error(oss.str());
-      return;
-    }
-
-    if (!parse_file())
-    {
-      oss << "Could not parse robots.txt for: " << host;
-      mermoz::common::print_error(oss.str());
-      return;
-    }
-
-    oss << "Added robot: " << host;
-    mermoz::common::print_log(oss.str());
+  Robots(std::string host,
+         std::string user_agent,
+         std::string user_agent_full) :
+    is_good(false),
+    is_empty(false),
+    host(host),
+    user_agent(user_agent),
+    user_agent_full(user_agent_full),
+    crawl_delay(4),
+    up_host(std::move(mermoz::common::UrlParser(host))) {
+    std::thread t(init, this);
+    t.detach();
   }
 
-  ~Robots() {}
+  bool good() {
+    return is_good;
+  }
+
+  bool empty() {
+    return is_empty;
+  }
 
   bool is_allowed(mermoz::common::UrlParser& up);
   bool is_allowed(std::string url);
 
-private:
+ private:
+  bool is_good;
+  bool is_empty;
+
   const std::string host;
   const std::string user_agent;
   const std::string user_agent_full;
   int crawl_delay; // milliseconds
 
-  std::string robots_file;
-
   mermoz::common::UrlParser up_host;
   std::vector<mermoz::common::UrlParser> walls;
   std::vector<mermoz::common::UrlParser> doors;
 
-  long fetch_robots();
+  static void init(Robots* rbt);
 
-  bool parse_file();
+  void fetch_robots(std::string& robotstxt, long& http_code);
+  void parse_file(std::string& robotstxt);
 }; // class Robots
 
 } // namespace urlserver

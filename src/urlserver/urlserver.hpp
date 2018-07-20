@@ -51,11 +51,6 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* inurls_queue,
                mermoz::common::MemSec* mem_sec,
                bool* status);
 
-void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
-                   mermoz::common::AsyncMap<std::string, Robots>* robots,
-                   std::string user_agent,
-                   bool* status);
-
 } // namespace urlserver
 } // namespace mermoz
 

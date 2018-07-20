@@ -37,23 +37,24 @@ namespace urlserver
 
 bool Robots::is_allowed(mc::UrlParser& up)
 {
+  if (!is_good)
+    return false;
+  else if (is_empty)
+    return true;
+
   /*
    * First we check Allow rules
    */
   for (auto& door : doors)
-  {
     if (up >= door)
       return true;
-  }
 
   /*
    * Then we check Disallow rules
    */
   for (auto& wall : walls)
-  {
     if (up >= wall)
       return false;
-  }
 
   return true;
 }
@@ -64,35 +65,64 @@ bool Robots::is_allowed(std::string url)
   return is_allowed(up);
 }
 
-long Robots::fetch_robots()
+void Robots::init(Robots* rbt)
 {
-  if (host.empty())
+  if (!rbt->host.empty())
   {
-    mc::print_error("No host provided");
-    return -1;
+    std::string robotstxt;
+    long http_code;
+
+    rbt->fetch_robots(robotstxt, http_code);
+
+    if (http_code >= 200 && http_code < 300)
+    {
+      rbt->is_good = true;
+      rbt->is_empty = robotstxt.empty();
+
+      if (!rbt->is_empty)
+        rbt->parse_file(robotstxt);
+    }
+    else if (http_code >= 400 && http_code < 500)
+    {
+      // Why ? Because it means the 'robots.txt'
+      // does not exists, so no rules are provided
+      // and it is accepted case.
+      rbt->is_good = true;
+    }
+    else
+    {
+      rbt->is_good = false;
+    }
   }
 
-  std::string robots_url = host;
+  std::ostringstream oss;
+  if (rbt->good())
+  {
+    oss << "Valid \'robots\' rules (" << rbt->host << ")";
+    mc::print_log(oss.str());
+  }
+  else
+  {
+    oss << "Invalid \'robots\' rules (" << rbt->host << ")";
+    mc::print_warning(oss.str());
+  }
+}
+
+void Robots::fetch_robots(std::string& robotstxt, long& http_code)
+{
+  std::string robots_url {host};
   robots_url.append("/robots.txt");
 
 # ifdef MMZ_PROFILE
-  long http_code = mc::http_fetch(robots_url, robots_file, 60L, user_agent_full);
+  http_code = mc::http_fetch(robots_url, robotstxt, 60L, user_agent_full);
 # else
-  long http_code = mc::http_fetch(robots_url, robots_file, 10L, user_agent_full);
+  http_code = mc::http_fetch(robots_url, robotstxt, 10L, user_agent_full);
 # endif
-
-  return http_code;
 }
 
-bool Robots::parse_file()
+void Robots::parse_file(std::string& robotstxt)
 {
-  if (robots_file.empty())
-  {
-    mc::print_error("Nothing to parse.");
-    return false;
-  }
-
-  std::istringstream iss(robots_file);
+  std::istringstream iss(robotstxt);
 
   bool read_settings {false};
   bool has_generic {false};
@@ -153,11 +183,6 @@ bool Robots::parse_file()
       }
     }
   }
-
-  // It's parsed, thank you.
-  robots_file.clear();
-
-  return true;
 }
 
 } // namespace urlserver

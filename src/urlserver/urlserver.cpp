@@ -51,24 +51,28 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   std::set<std::string> to_visit;
   std::set<std::string> parsed_urls;
 
-  mc::AsyncQueue<std::string> robots_to_fetch;
-  mc::AsyncMap<std::string, Robots> robots;
+  std::map<std::string, Robots> robots;
 
-  std::thread t(robot_manager, &robots_to_fetch, &robots, user_agent, status);
-  t.detach();
+  std::string content;
+  std::string url;
+  std::string text;
+  std::string links;
+  std::string http_status;
 
   while (*status)
   {
-    std::string content;
+    content.clear();
     bool res = content_queue->pop_for(content, 1000);
-    (*mem_sec) -= content.size();
 
-    if (res)
+    if (!content.empty() && res)
     {
-      std::string url;
-      std::string text;
-      std::string links;
-      std::string http_status;
+      (*mem_sec) -= content.size();
+
+      url.clear();
+      text.clear();
+      links.clear();
+      http_status.clear();
+
       mc::unpack(content, {&url, &text, &links, &http_status});
 
       std::set<std::string>::iterator it;
@@ -98,84 +102,47 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
             parsed_urls.insert(link);
           }
         }
-        else
-        {
-          continue;
-        }
       }
     }
 
     // dispatching tasks
-    for(auto it = parsed_urls.begin();
-        it != parsed_urls.end();)
+    for(auto purlit = parsed_urls.begin();
+        purlit != parsed_urls.end();)
     {
-      mc::UrlParser up(*it);
+      mc::UrlParser up(*purlit);
 
-      if (robots.find(up.domain) == robots.end())
+      std::map<std::string, Robots>::iterator mapit; 
+
+      if ((mapit = robots.find(up.domain)) == robots.end())
       {
-        robots_to_fetch.push(up.domain);
-        it++;
+        robots.emplace(up.domain, Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent));
       }
       else
       {
-        bool is_ok {false};
-        try
-        {
-          is_ok = robots[up.domain].is_allowed(up);
-        }
-        catch(...)
-        {
-          std::cerr << "Error for Robots check of " << *it << std::endl;
-        }
+        bool allowed {false};
 
-        if (is_ok)
+        if (mapit->second.good())
         {
-          (*mem_sec) += 2*it->size();
-          url_queue->push(*it);
-          to_visit.insert(*it);
-        }
+          allowed = mapit->second.is_allowed(up);
 
-        (*mem_sec) -= it->size();
-        it = parsed_urls.erase(it);
+          if (allowed)
+          {
+            (*mem_sec) += 2*purlit->size();
+            url_queue->push(*purlit);
+            to_visit.insert(*purlit);
+          }
+
+          (*mem_sec) -= purlit->size();
+          purlit = parsed_urls.erase(purlit);
+
+          continue;
+        }
       }
+
+      purlit++;
     }
   }
 }
-
-void robot_manager(mermoz::common::AsyncQueue<std::string>* robots_to_fetch,
-                   mermoz::common::AsyncMap<std::string, Robots>* robots,
-                   std::string user_agent,
-                   bool* status)
-{
-  std::queue<std::string> ordered_domains;
-  std::set<std::string> domains;
-
-  while (*status)
-  {
-    std::string domain;
-    robots_to_fetch->pop(domain);
-
-    if (domains.find(domain) != domains.end())
-    {
-      continue;
-    }
-    else
-    {
-      ordered_domains.push(domain);
-      domains.insert(domain);
-    }
-
-    if (domains.size() > 10000)
-    {
-      robots->erase(ordered_domains.front());
-      domains.erase(ordered_domains.front());
-      ordered_domains.pop();
-    }
-
-    robots->emplace(domain, Robots("http://" + domain, "Qwantify", user_agent));
-  }
-}
-
 
 } // namespace urlserver
 } // namespace mermoz

@@ -182,9 +182,13 @@ std::ostream& operator<<(std::ostream& os, const UrlParser& rhs)
 
 bool UrlParser::operator>(const UrlParser& rhs)
 {
-  if (authority.empty() || rhs.authority.empty())
+  if (authority.empty() ^ rhs.authority.empty())
   {
-    throw std::invalid_argument("Cannot compare URLs without authority");
+    return !authority.empty();
+  }
+  else if (authority.empty() && rhs.authority.empty())
+  {
+    return false;
   }
 
   if (domain.compare(rhs.domain) != 0)
@@ -229,9 +233,13 @@ bool UrlParser::operator>(const UrlParser& rhs)
 
 bool UrlParser::operator>=(const UrlParser& rhs)
 {
-  if (authority.empty() || rhs.authority.empty())
+  if (authority.empty() ^ rhs.authority.empty())
   {
-    throw std::invalid_argument("Cannot compare URLs without authority");
+    return !authority.empty();
+  }
+  else if (authority.empty() && rhs.authority.empty())
+  {
+    return false;
   }
 
   if (domain.compare(rhs.domain) != 0)
