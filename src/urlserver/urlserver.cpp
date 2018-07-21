@@ -52,6 +52,8 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   std::set<std::string> parsed_urls;
 
   std::map<std::string, Robots> robots;
+  std::queue<std::string> robots_queue;
+  const size_t robots_limit {100000};
 
   while (*status)
   {
@@ -109,8 +111,15 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
       if ((mapit = robots.find(up.domain)) == robots.end())
       {
+        if (robots_queue.size() > robots_limit)
+        {
+          robots.erase(robots_queue.front());
+          robots_queue.pop();
+        }
+
         robots.emplace(up.domain, Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent));
         robots[up.domain].async_init();
+        robots_queue.push(up.domain);
       }
       else
       {
