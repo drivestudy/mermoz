@@ -196,7 +196,7 @@ bool UrlParser::operator>(const UrlParser& rhs)
   {
     return false;
   }
-  else if (has_pattern)
+  else if (has_pattern ^ rhs.has_pattern)
   {
     return match_pattern(rhs);
   }
@@ -251,7 +251,7 @@ bool UrlParser::operator>=(const UrlParser& rhs)
   {
     return false;
   }
-  else if (has_pattern)
+  else if (has_pattern ^ rhs.has_pattern)
   {
     return match_pattern(rhs);
   }
