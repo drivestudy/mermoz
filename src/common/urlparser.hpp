@@ -49,10 +49,19 @@ public:
   UrlParser () : UrlParser("") {}
 
   UrlParser (std::string url) :
-    url(url), inherit_scheme(false), inherit_auth(false),
-    inherit_path(false), complete_url(false), is_file(false),
-    has_final_slash (false), do_parse(true), do_scheme(false),
-    do_authority(false), do_path(false), do_query(false),
+    url(url),
+    inherit_scheme(false),
+    inherit_auth(false),
+    inherit_path(false),
+    complete_url(false),
+    is_file(false),
+    has_final_slash(false),
+    has_pattern(false),
+    do_parse(true),
+    do_scheme(false),
+    do_authority(false),
+    do_path(false), 
+    do_query(false),
     do_fragment(false)
   {
     if (url.empty()) return;
@@ -94,6 +103,7 @@ public:
 
   bool is_file;
   bool has_final_slash;
+  bool has_pattern;
 
   std::string scheme;
 
@@ -108,6 +118,8 @@ public:
 
   std::string query;
   std::vector<std::string> query_args;
+
+  std::vector<std::string> patterns;
 
   std::string fragment;
 
@@ -125,6 +137,8 @@ private:
   void parse_path(std::streambuf* sb);
   void parse_query(std::streambuf* sb);
   void parse_fragment(std::streambuf* sb);
+
+  bool match_pattern(const UrlParser& rhs);
 }; // class UrlParser
 
 } // namespace common

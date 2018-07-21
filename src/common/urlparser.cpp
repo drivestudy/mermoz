@@ -96,7 +96,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
         path_tree.pop_back();
 
       path_tree.insert(path_tree.end(), rhs.path_tree.begin(), rhs.path_tree.end());
-      
+
       is_file = rhs.is_file;
       has_final_slash = rhs.has_final_slash;
 
@@ -111,7 +111,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
 
   // Cleanning up the path_tree vector
   for (auto i = this->path_tree.begin();
-      i != this->path_tree.end();
+       i != this->path_tree.end();
       )
   {
     if (i->empty())
@@ -196,6 +196,10 @@ bool UrlParser::operator>(const UrlParser& rhs)
   {
     return false;
   }
+  else if (has_pattern)
+  {
+    return match_pattern(rhs);
+  }
   else
   {
     if (path_tree.size() <= rhs.path_tree.size())
@@ -246,6 +250,10 @@ bool UrlParser::operator>=(const UrlParser& rhs)
   if (domain.compare(rhs.domain) != 0)
   {
     return false;
+  }
+  else if (has_pattern)
+  {
+    return match_pattern(rhs);
   }
   else
   {
@@ -387,6 +395,8 @@ bool UrlParser::parse()
     inherit_auth = true;
     inherit_path = true;
 
+    has_pattern = url[0] == '*';
+
     do_path = true;
   }
   else
@@ -433,7 +443,10 @@ void UrlParser::parse_scheme(std::streambuf* sb)
     else
     {
       has_separator = true;
-      while ((c = sb->sbumpc()) == '/') { nslash++; }
+      while ((c = sb->sbumpc()) == '/')
+      {
+        nslash++;
+      }
       sb->sungetc();
       break;
     }
@@ -567,6 +580,9 @@ void UrlParser::parse_path(std::streambuf* sb)
     }
     else
     {
+      if (c == '*')
+        has_pattern = true;
+
       path.push_back(c);
 
       if (c == '/' && path.size() > 1)
@@ -586,11 +602,26 @@ void UrlParser::parse_path(std::streambuf* sb)
   path_tree.push_back(path.substr(slash_pos + 1, pos - slash_pos - 1));
 
   for (auto pathit = path_tree.begin();
-      pathit != path_tree.end();
-      pathit++)
+       pathit != path_tree.end();
+      )
   {
     if (pathit->compare(".") == 0)
       pathit = path_tree.erase(pathit);
+    else
+      pathit++;
+  }
+
+  if (has_pattern)
+  {
+    std::istringstream iss(path);
+    std::string pat;
+    while (!iss.eof())
+    {
+      pat.clear();
+      std::getline(iss, pat, '*');
+      if (!pat.empty())
+        patterns.push_back(pat);
+    }
   }
 
   if (path_tree.size() > 1)
@@ -652,6 +683,27 @@ void UrlParser::parse_fragment(std::streambuf* sb)
   {
     fragment.push_back(c);
   }
+}
+
+bool UrlParser::match_pattern(const UrlParser& rhs)
+{
+  size_t pat_pos {0};
+  for (auto& pat : patterns)
+  {
+    size_t pos = rhs.url.find(pat);
+
+    if (pos == std::string::npos
+        || pos < pat_pos)
+    {
+      return false;
+    }
+    else
+    {
+      pat_pos = pos;
+    }
+  }
+
+  return true;
 }
 
 } // namespace common
