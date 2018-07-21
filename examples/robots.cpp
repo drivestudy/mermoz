@@ -38,6 +38,7 @@ namespace mc = mermoz::urlserver;
 int main (int argc, char** argv)
 {
   mc::Robots rb(argv[1], argv[2], argv[2]);
+  rb.init();
 
   rb.is_allowed(argv[3]) ?
     std::cout << "Allowed" << std::endl :

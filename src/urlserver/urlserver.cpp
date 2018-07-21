@@ -110,7 +110,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       if ((mapit = robots.find(up.domain)) == robots.end())
       {
         robots.emplace(up.domain, Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent));
-        robots[up.domain].initialize();
+        robots[up.domain].async_init();
       }
       else
       {

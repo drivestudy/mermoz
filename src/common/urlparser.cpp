@@ -619,7 +619,7 @@ void UrlParser::parse_path(std::streambuf* sb)
     {
       pat.clear();
       std::getline(iss, pat, '*');
-      if (!pat.empty())
+      if (!pat.empty() && !(pat.compare("/") == 0))
         patterns.push_back(pat);
     }
   }

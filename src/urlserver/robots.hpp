@@ -67,10 +67,15 @@ class Robots {
   bool is_allowed(mermoz::common::UrlParser& up);
   bool is_allowed(std::string url);
 
-  void initialize() 
+  void async_init() 
   {
-    std::thread t(async_initialize, this);
+    std::thread t(initialize, this);
     t.detach();
+  }
+
+  void init()
+  {
+    initialize(this);
   }
 
  private:
@@ -86,7 +91,7 @@ class Robots {
   std::vector<mermoz::common::UrlParser> walls;
   std::vector<mermoz::common::UrlParser> doors;
 
-  static void async_initialize(Robots* rbt);
+  static void initialize(Robots* rbt);
   static void fetch_robots(Robots* rbt, std::string& robotstxt, long& http_code);
   static void parse_file(Robots* rbt, std::string& robotstxt);
 }; // class Robots

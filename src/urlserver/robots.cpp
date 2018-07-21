@@ -65,7 +65,7 @@ bool Robots::is_allowed(std::string url)
   return is_allowed(up);
 }
 
-void Robots::async_initialize(Robots* rbt)
+void Robots::initialize(Robots* rbt)
 {
   bool private_is_good {false};
 
