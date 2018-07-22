@@ -51,6 +51,13 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* inurls_queue,
                mermoz::common::MemSec* mem_sec,
                bool* status);
 
+void dispatcher(mermoz::common::AsyncQueue<std::string>* outurls_queue,
+                mermoz::common::AsyncQueue<std::string>* allowed_queue,
+                unsigned int num_stacks,
+                unsigned int stack_size,
+                bool* throwlist,
+                bool* status);
+
 } // namespace urlserver
 } // namespace mermoz
 

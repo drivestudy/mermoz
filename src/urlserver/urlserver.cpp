@@ -55,10 +55,25 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   std::queue<std::string> robots_queue;
   const size_t robots_limit {100000};
 
+  mermoz::common::AsyncQueue<std::string> allowed_queue;
+  bool throwlist {false};
+
+  std::thread t(dispatcher,
+                url_queue,
+                &allowed_queue,
+                100U, // number stacks
+                10U, // stack size
+                &throwlist,
+                status);
+  t.detach();
+
   while (*status)
   {
     std::string content;
     bool res = content_queue->pop_for(content, 1000);
+
+    // Very important verification todo !
+    throwlist = !res && parsed_urls.empty();
 
     if (!content.empty() && res)
     {
@@ -107,7 +122,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     {
       mc::UrlParser up(*purlit);
 
-      std::map<std::string, Robots>::iterator mapit; 
+      std::map<std::string, Robots>::iterator mapit;
 
       if ((mapit = robots.find(up.domain)) == robots.end())
       {
@@ -120,31 +135,73 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         robots.emplace(up.domain, Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent));
         robots[up.domain].async_init();
         robots_queue.push(up.domain);
+
+        purlit++;
       }
       else
       {
-        bool allowed {false};
-
-        if (mapit->second.good())
+        if (mapit->second.good()
+            && to_visit.find(*purlit) == to_visit.end())
         {
-          allowed = mapit->second.is_allowed(up);
+          mapit->second.is_allowed(up);
 
-          if (allowed)
+          if (mapit->second.is_allowed(up))
           {
             (*mem_sec) += 2*purlit->size();
-            url_queue->push(*purlit);
+
+            allowed_queue.push(*purlit);
             to_visit.insert(*purlit);
           }
+        }
 
-          (*mem_sec) -= purlit->size();
-          purlit = parsed_urls.erase(purlit);
+        (*mem_sec) -= purlit->size();
+        purlit = parsed_urls.erase(purlit);
+      }
+    }
+  }
+}
 
-          continue;
+void dispatcher(mermoz::common::AsyncQueue<std::string>* outurls_queue,
+                mermoz::common::AsyncQueue<std::string>* allowed_queue,
+                unsigned int num_stacks,
+                unsigned int stack_size,
+                bool* throwlist,
+                bool* status)
+{
+  unsigned int stack_id {0};
+  std::vector<std::queue<std::string>> stacks(num_stacks);
+
+  while (*status)
+  {
+    std::string url;
+    bool res = allowed_queue->pop_for(url, 100);
+
+    if (res)
+    {
+      stacks[stack_id].push(url);
+
+      if (stacks[stack_id].size() >= stack_size)
+      {
+        while (!stacks[stack_id].empty())
+        {
+          outurls_queue->push(stacks[stack_id].front());
+          stacks[stack_id].pop();
         }
       }
-
-      purlit++;
     }
+    else if (*throwlist)
+    {
+      for (unsigned int sid = 0; sid < num_stacks; sid++)
+      {
+        while (!stacks[sid].empty())
+        {
+          outurls_queue->push(stacks[sid].front());
+          stacks[sid].pop();
+        }
+      }
+    }
+
+    stack_id+1 >= num_stacks ? stack_id = 0 : stack_id++;
   }
 }
 
