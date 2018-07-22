@@ -117,7 +117,8 @@ bool AsyncQueue<ValueType>::pop_for(ValueType& val, const int time_ms)
   if(queue.empty())
     res = cond.wait_for(mlock, time_ms*1ms);
 
-  if (res == std::cv_status::timeout)
+  if (res == std::cv_status::timeout
+      || queue.empty())
     return false;
 
   val = queue.front();

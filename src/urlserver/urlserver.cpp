@@ -118,7 +118,8 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
     // dispatching tasks
     for(auto purlit = parsed_urls.begin();
-        purlit != parsed_urls.end();)
+        purlit != parsed_urls.end();
+       )
     {
       mc::UrlParser up(*purlit);
 
@@ -140,25 +141,27 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       }
       else
       {
-        if (mapit->second.good()
-            && to_visit.find(*purlit) == to_visit.end())
+        if (mapit->second.good())
         {
-          mapit->second.is_allowed(up);
-
-          if (mapit->second.is_allowed(up))
+          if (mapit->second.is_allowed(up)
+              && to_visit.find(*purlit) == to_visit.end())
           {
             (*mem_sec) += 2*purlit->size();
 
             allowed_queue.push(*purlit);
             to_visit.insert(*purlit);
           }
-        }
 
-        (*mem_sec) -= purlit->size();
-        purlit = parsed_urls.erase(purlit);
-      }
-    }
-  }
+          (*mem_sec) -= purlit->size();
+          purlit = parsed_urls.erase(purlit);
+        }
+        else
+        {
+          purlit++;
+        } // if (mapit->second.good())
+      } // if (mapit == robots.end())
+    } // for (auto& purlit : parsed_urls)
+  } // while (*status)
 }
 
 void dispatcher(mermoz::common::AsyncQueue<std::string>* outurls_queue,
