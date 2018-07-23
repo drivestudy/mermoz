@@ -93,14 +93,12 @@ long http_fetch(std::string& url,
     }
   }
 
-# if MMZ_VERBOSE
   if (!(res >= 200 && res < 300))
   {
     std::ostringstream oss;
     oss << url << " (" << res << "/" << redirect << ")";
     print_warning(oss.str());
   }
-# endif
 
   return res;
 }

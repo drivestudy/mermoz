@@ -62,7 +62,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
                 url_queue,
                 &allowed_queue,
                 100U, // number stacks
-                10U, // stack size
+                50U, // stack size
                 &throwlist,
                 status);
   t.detach();
