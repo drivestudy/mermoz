@@ -24,6 +24,10 @@
  * Author:
  * Noel Martin (n.martin@qwantresearch.com)
  *
+ * Parsing routines are highly inspired from the 'gumbo-parser' examples:
+ * - located at: https://github.com/google/gumbo-parser/tree/master/examples,
+ * - and originaly written by: jdtang@google.com (Jonathan Tang).
+ *
  */
 
 #include "spider/parser.hpp"
@@ -59,15 +63,26 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
     {
       GumboOutput* output = gumbo_parse(content.c_str());
 
+      std::map<std::string, std::string> page_properties =
+        get_page_properties(output->root);
+
       std::string text = get_text(output->root);
       text_cleaner(text);
 
       std::string raw_links = get_links(output->root);
       std::string formated_urls;
-      url_formating(url, raw_links, formated_urls);
+
+      std::string base;
+      auto mapit = page_properties.end();
+      if ((mapit = page_properties.find("base")) != page_properties.end())
+        base = mapit->second;
+      else
+        base = url;
+
+      url_formating(base, raw_links, formated_urls);
       raw_links.clear();
 
-      /** 
+      /**
        * For now on we just test the exploration
        * mechanism, clear text is deleted
        */
@@ -120,6 +135,66 @@ std::string get_text(GumboNode* node)
   {
     return "";
   }
+}
+
+std::map<std::string, std::string> get_page_properties(GumboNode* root)
+{
+  std::map<std::string, std::string> page_properties;
+
+  if (!(root->type == GUMBO_NODE_ELEMENT)
+      || !(root->v.element.children.length >= 2))
+    return page_properties;
+
+  const GumboVector* root_children = &root->v.element.children;
+  GumboNode* head = nullptr;
+  for (unsigned int i = 0; i < root_children->length; ++i)
+  {
+    GumboNode* child = static_cast<GumboNode*>(root_children->data[i]);
+    if (child->type == GUMBO_NODE_ELEMENT &&
+        child->v.element.tag == GUMBO_TAG_HEAD)
+    {
+      head = child;
+      break;
+    }
+  }
+
+  if (head == nullptr)
+    return page_properties;
+
+  GumboVector* head_children = &head->v.element.children;
+  for (unsigned int i = 0; i < head_children->length; ++i)
+  {
+    GumboNode* child = static_cast<GumboNode*>(head_children->data[i]);
+    if (child->type == GUMBO_NODE_ELEMENT)
+    {
+      if(child->v.element.tag == GUMBO_TAG_TITLE)
+      {
+        GumboNode* title_text = static_cast<GumboNode*>(child->v.element.children.data[0]);
+        page_properties.emplace("title", title_text->v.text.text);
+      }
+      else if (child->v.element.tag == GUMBO_TAG_BASE)
+      {
+        GumboAttribute* href;
+        if ((href = gumbo_get_attribute(&child->v.element.attributes, "href")) != nullptr)
+          page_properties.emplace("base", href->value);
+      }
+      else if (child->v.element.tag == GUMBO_TAG_META)
+      {
+        GumboAttribute* name;
+        if ((name = gumbo_get_attribute(&child->v.element.attributes, "name")) != nullptr)
+        {
+          if (std::strcmp(name->value, "description") == 0)
+          {
+            GumboAttribute* content;
+            if ((content = gumbo_get_attribute(&child->v.element.attributes, "content")) != nullptr)
+              page_properties.emplace("description", content->value);
+          }
+        }
+      }
+    }
+  }
+
+  return page_properties;
 }
 
 std::string get_links(GumboNode* node)
@@ -187,14 +262,14 @@ void text_cleaner (std::string& s)
   }
 }
 
-void url_formating(std::string& root_url, std::string& raw_urls, std::string& formated_urls)
+void url_formating(std::string& base, std::string& raw_urls, std::string& formated_urls)
 {
   formated_urls.clear();
 
   if (raw_urls.empty())
     return;
 
-  mc::UrlParser root(root_url);
+  mc::UrlParser baseup(base);
 
   std::istringstream iss(raw_urls);
   std::string link;
@@ -213,7 +288,7 @@ void url_formating(std::string& root_url, std::string& raw_urls, std::string& fo
         mc::UrlParser up(link);
 
         if (!up.complete_url)
-          up += root;
+          up += baseup;
 
         if (up.valid_scheme({"http", "https"}))
           formated_urls.append(up.get_url()).append("\n");

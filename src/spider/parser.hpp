@@ -24,6 +24,10 @@
  * Author:
  * Noel Martin (n.martin@qwantresearch.com)
  *
+ * Parsing routines are highly inspired from the 'gumbo-parser' examples:
+ * - located at: https://github.com/google/gumbo-parser/tree/master/examples,
+ * - and originaly written by: jdtang@google.com (Jonathan Tang).
+ *
  */
 
 #ifndef MERMOZ_PARSER_H__
@@ -34,7 +38,9 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <cstring>
 #include <atomic>
+#include <map>
 
 #include "gumbo.h"
 
@@ -50,6 +56,8 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
             std::atomic<uint64_t>* nparsed,
             mermoz::common::MemSec* mem_sec,
             bool* status);
+
+std::map<std::string, std::string> get_page_properties(GumboNode* node);
 
 std::string get_text(GumboNode* node);
 
