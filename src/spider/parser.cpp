@@ -169,8 +169,11 @@ std::map<std::string, std::string> get_page_properties(GumboNode* root)
     {
       if(child->v.element.tag == GUMBO_TAG_TITLE)
       {
-        GumboNode* title_text = static_cast<GumboNode*>(child->v.element.children.data[0]);
-        page_properties.emplace("title", title_text->v.text.text);
+        if (child->v.element.children.length == 1)
+        {
+          GumboNode* title_text = static_cast<GumboNode*>(child->v.element.children.data[0]);
+          page_properties.emplace("title", title_text->v.text.text);
+        }
       }
       else if (child->v.element.tag == GUMBO_TAG_BASE)
       {
