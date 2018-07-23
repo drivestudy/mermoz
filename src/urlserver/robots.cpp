@@ -95,6 +95,7 @@ void Robots::initialize(Robots* rbt)
       private_is_good = false;
     }
 
+#   ifdef MMZ_VERBOZE
     std::ostringstream oss;
     if (private_is_good)
     {
@@ -106,6 +107,7 @@ void Robots::initialize(Robots* rbt)
       oss << "Invalid \'robots\' rules: " << rbt->host;
       mc::print_warning(oss.str());
     }
+#   endif
 
     rbt->is_good = private_is_good;
     rbt->is_empty = robotstxt.empty();
