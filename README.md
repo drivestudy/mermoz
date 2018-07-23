@@ -1,54 +1,60 @@
 # Mermoz :airplane:
-Web crawler for multi-threaded computers
+Web crawler for multi-threaded computers.
 
-## Start it
-Compile the code by doing `make` and then launch it:
+:loudspeaker: Dear webmasters, we crawled your website? All the needed infos
+[here](#webmasters-computer) :loudspeaker:
+
+## Build
+First of all, you need to download and install the
+[`urlfactory`](https://www.github.com/QwantResearch/urlfactory) library.
+
+Then clone the current repository:
+```
+$ git clone https://github.com/QwantResearch/mermoz.git
+```
+
+Go to the root directory of `Mermoz` and check that you got all the needed
+[dependencies](#dependencies).
+
+Finally compiling the code is really easy:
+```
+$ make
+```
+
+## Launch
+After doing the command `make` the binary are located whihin `build/`:
 ```
 $ cd build
 $ ./mermoz --settings file --seeds file
 ```
 
-## Webmasters? :computer: 
+The `settings` file has the following format:
+```
+fetchers [num fetchers]
+parsers [num parsers]
+user-agent [user-agent]
+max-ram [GB]
+```
+and the `seeds` file
+```
+url1
+[urls...]
+```
+
+## Webmasters? :computer:
 Probably, you see us crawling your website, we announce ourselves as:
 ```
 Mozilla/5.0 (compatible; Qwantify/Mermoz/0.1; +https://www.qwant.com/; +https://www.github.com/QwantResearch/mermoz)
 ```
 with the following IPs `194.187.171.0/24`.
 
-## Examples
-
-The detailed readme of examples is located within [`examples/README.md`](examples/README.md).
-
-### URL Parser
-
-One of the tool developed within the crawler is the URL parser.
-You can compile the CLI example:
-```
-$ make urlparser
-```
-The executable will be located within `examples/`.
-
-To test it, run for instance:
-```
-$ ./urlparser 'https://www.example.org/news/2017?mode=dark&os=linux#title'
-```
-
-Also it can handle URL addition if there is relative paths, such as:
-```
-$ ./urlparser 'https://www.example.org/news/2017' + '../2016/june?os=linux#title'
-```
-
-The best of the best, you can compare URLs as:
-```
-$ ./urlparser 'https://www.example.org/news/' gt 'https://www.example.org/news/2017'
-```
-Is implemented `>, >=, <, <=` respectively coded as `gt, geq, lt, leq` (Fortran-style :floppy_disk: ).
-
 ## Dependencies
 This list is more or less like a memo:
-- `boost/program_options` basics,
-- `curl` fetch pages,
-- `gumbo` fast and reliable HTML5 parser,
+- [`urlfactory`](https://www.github.com/QwantResearch/urlfactory) all the needed tools for
+  URLs and `robots.txt`.
+- [`curl`](https://github.com/curl/curl) fetch pages,
+- [`gumbo`](https://github.com/google/gumbo-parser) fast and reliable HTML5 parser,
+- [`boost/program_options`](https://www.boost.org/doc/libs/1_67_0/doc/html/program_options.html) basics,
 
 ## Contributing
 Please first read [`CONTRIBUTING.md`](CONTRIBUTING.md) and propose what you want or you can fix or add functionalities detailed
