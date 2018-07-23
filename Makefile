@@ -2,7 +2,7 @@ CC = g++
 OPT = -std=c++14 -Wall -O3 -pthread
 #OPT = -std=c++14 -Wall -g -pthread
 INC = -I src/.
-LIB = -lgumbo -lboost_program_options -lcurl -ltcmalloc
+LIB = -lgumbo -lboost_program_options -lcurl -lurlfactory
 #PROF = -DMMZ_PROFILE
 VERB = -DMMZ_VERBOSE
 
@@ -17,9 +17,9 @@ dir:
 
 lib: $(LIBMERMOZ)
 
-BINLIST = src/common/urlparser.o src/common/packer.o src/common/logs.o\
-					src/common/httpfetch.o src/common/memsec.o src/urlserver/urlserver.o\
-					src/urlserver/robots.o src/spider/spider.o src/spider/parser.o\
+BINLIST = src/common/packer.o src/common/logs.o src/common/httpfetch.o\
+					src/common/memsec.o src/urlserver/urlserver.o\
+					src/spider/spider.o src/spider/parser.o\
 					src/spider/fetcher.o
 
 %.o: %.cpp
@@ -30,14 +30,6 @@ $(LIBMERMOZ): $(BINLIST)
 
 mermoz: src/mermoz.cpp
 	$(CC) $(OPT) $(PROF) $(VERB) $(INC) -o build/$@ $^ $(LIBMERMOZ) $(LIB) 
-
-examples: urlparser robots
-
-urlparser: examples/urlparser.cpp
-	$(CC) $(OPT) $(INC) -o examples/$@ $^ $(LIBMERMOZ)
-
-robots: examples/robots.cpp
-	$(CC) $(OPT) $(INC) -o examples/$@ $^ $(LIBMERMOZ) $(LIB)
 
 clean:
 	rm -rf build src/common/*.o src/spider/*.o src/urlserver/*.o

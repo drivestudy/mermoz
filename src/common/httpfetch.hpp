@@ -34,7 +34,7 @@
 #include <vector>
 #include <curl/curl.h>
 
-#include "common/urlparser.hpp"
+#include "urlfactory/urlfactory.hpp"
 
 namespace mermoz
 {

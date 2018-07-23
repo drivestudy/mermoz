@@ -43,6 +43,7 @@
 #include <map>
 
 #include "gumbo.h"
+#include "urlfactory/urlfactory.hpp"
 
 #include "common/common.hpp"
 

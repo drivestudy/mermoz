@@ -32,7 +32,6 @@
 #include "common/logs.hpp"
 #include "common/asyncqueue.hpp"
 #include "common/asyncmap.hpp"
-#include "common/urlparser.hpp"
 #include "common/packer.hpp"
 #include "common/httpfetch.hpp"
 #include "common/memsec.hpp"

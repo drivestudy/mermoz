@@ -51,7 +51,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
   std::set<std::string> to_visit;
   std::set<std::string> parsed_urls;
 
-  std::map<std::string, Robots> robots;
+  std::map<std::string, urlfactory::Robots> robots;
   std::queue<std::string> robots_queue;
   const size_t robots_limit {100000};
 
@@ -121,9 +121,9 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
         purlit != parsed_urls.end();
        )
     {
-      mc::UrlParser up(*purlit);
+      urlfactory::UrlParser up(*purlit);
 
-      std::map<std::string, Robots>::iterator mapit;
+      std::map<std::string, urlfactory::Robots>::iterator mapit;
 
       if ((mapit = robots.find(up.domain)) == robots.end())
       {
@@ -133,7 +133,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
           robots_queue.pop();
         }
 
-        robots.emplace(up.domain, Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent));
+        robots.emplace(up.domain, urlfactory::Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent));
         robots[up.domain].async_init();
         robots_queue.push(up.domain);
 

@@ -26,6 +26,7 @@
  *
  */
 
+#include "common/logs.hpp"
 #include "common/httpfetch.hpp"
 
 #ifdef MMZ_PROFILE
@@ -42,7 +43,7 @@ long http_fetch(std::string& url,
                 long time_out,
                 const std::string user_agent)
 {
-  UrlParser up(url);
+  urlfactory::UrlParser up(url);
 
   if (up.scheme.empty())
     up.scheme = "http";
@@ -75,7 +76,7 @@ long http_fetch(std::string& url,
     {
       url = line.substr(pos + 10);
 
-      UrlParser tmpup(url);
+      urlfactory::UrlParser tmpup(url);
 
       if (!tmpup.complete_url)
         tmpup += up;

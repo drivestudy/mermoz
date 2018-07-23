@@ -272,7 +272,7 @@ void url_formating(std::string& base, std::string& raw_urls, std::string& format
   if (raw_urls.empty())
     return;
 
-  mc::UrlParser baseup(base);
+  urlfactory::UrlParser baseup(base);
 
   std::istringstream iss(raw_urls);
   std::string link;
@@ -288,7 +288,7 @@ void url_formating(std::string& base, std::string& raw_urls, std::string& format
           && link.find("mailto") == std::string::npos
           && link.find(",") == std::string::npos)
       {
-        mc::UrlParser up(link);
+        urlfactory::UrlParser up(link);
 
         if (!up.complete_url)
           up += baseup;
