@@ -75,7 +75,12 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
       std::string base;
       auto mapit = page_properties.end();
       if ((mapit = page_properties.find("base")) != page_properties.end())
-        base = mapit->second;
+      {
+        urlfactory::UrlParser up_loc(url);
+        urlfactory::UrlParser up_base(mapit->second);
+        up_base += up_loc;
+        base = up_base.get_url();
+      }
       else
         base = url;
 
