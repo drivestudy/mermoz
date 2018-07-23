@@ -5,18 +5,23 @@ Web crawler for multi-threaded computers.
 [here](#webmasters-computer) :loudspeaker:
 
 ## Build
-First of all, you need to download and install the
-[`urlfactory`](https://www.github.com/QwantResearch/urlfactory) library.
-
-Then clone the current repository:
+- First clone the current repository and DO NOT REMOVE `--recursive` because
+[`urlfactory`](https://www.github.com/QwantResearch/urlfactory) is needed:
 ```
-$ git clone https://github.com/QwantResearch/mermoz.git
+$ git clone --recursive https://github.com/QwantResearch/mermoz.git
 ```
 
-Go to the root directory of `Mermoz` and check that you got all the needed
+- You need to compile [`urlfactory`](https://www.github.com/QwantResearch/urlfactory)
+by doing:
+```
+$ cd src/urlfactory
+$ make
+```
+
+- Go to the root directory of `Mermoz` and check that you got all the needed
 [dependencies](#dependencies).
 
-Finally compiling the code is really easy:
+- Finally compiling the code is really easy:
 ```
 $ make
 ```

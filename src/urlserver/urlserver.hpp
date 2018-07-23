@@ -38,7 +38,7 @@
 
 #include "common/common.hpp"
 
-#include "urlfactory/urlfactory.hpp"
+#include "urlfactory.hpp"
 
 namespace mermoz
 {
