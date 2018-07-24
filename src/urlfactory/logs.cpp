@@ -24,51 +24,43 @@
  * Author:
  * Noel Martin (n.martin@qwantresearch.com)
  *
- * Parsing routines are highly inspired from the 'gumbo-parser' examples:
- * - located at: https://github.com/google/gumbo-parser/tree/master/examples,
- * - and originaly written by: jdtang@google.com (Jonathan Tang).
- *
  */
 
-#ifndef MERMOZ_PARSER_H__
-#define MERMOZ_PARSER_H__
+#include "logs.hpp"
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
-#include <cstring>
-#include <atomic>
-#include <map>
-
-#include "gumbo.h"
-#include "urlfactory/urlfactory.hpp"
-
-#include "common/common.hpp"
-
-namespace mermoz
-{
-namespace spider
+namespace urlfactory
 {
 
-void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
-            mermoz::common::AsyncQueue<std::string>* parsed_queue,
-            std::atomic<uint64_t>* nparsed,
-            mermoz::common::MemSec* mem_sec,
-            bool* status);
+void print_log(std::string message)
+{
+  std::time_t t = std::time(nullptr);
+  std::tm tm = *std::localtime(&t);
 
-std::map<std::string, std::string> get_page_properties(GumboNode* node);
+  std::cout << "\033[1m [" << std::put_time(&tm, "%T") << "] [URLFACTORY] -\033[0m " << message << std::endl;
+}
 
-std::string get_text(GumboNode* node);
+void print_strong_log(std::string message)
+{
+  std::time_t t = std::time(nullptr);
+  std::tm tm = *std::localtime(&t);
 
-std::string get_links(GumboNode* node);
+  std::cout << "\033[1;32m [" << std::put_time(&tm, "%T") << "] [URLFACTORY] -\033[0m \033[92m" << message << "\033[0m" << std::endl;
+}
 
-void text_cleaner(std::string& s);
+void print_warning(std::string message)
+{
+  std::time_t t = std::time(nullptr);
+  std::tm tm = *std::localtime(&t);
 
-void url_formating(std::string& rool_url, std::string& raw_urls, std::string& formated_urls);
+  std::cout << "\033[1;33m [" << std::put_time(&tm, "%T") << "] [URLFACTORY] -\033[0m \033[93m" << message << "\033[0m" << std::endl;
+}
 
-} // namespace spider
-} // namespace mermoz
+void print_error(std::string message)
+{
+  std::time_t t = std::time(nullptr);
+  std::tm tm = *std::localtime(&t);
 
-#endif // MERMOZ_PARSER_H__
+  std::cout << "\033[1;31m [" << std::put_time(&tm, "%T") << "] [URLFACTORY] -\033[0m \033[91m" << message << "\033[0m" << std::endl;
+}
+
+} // namespace urlfactory

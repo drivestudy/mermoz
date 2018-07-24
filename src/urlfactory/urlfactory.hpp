@@ -26,38 +26,12 @@
  *
  */
 
-#ifndef MERMOZ_HTTPFETCH_H__
-#define MERMOZ_HTTPFETCH_H__
+#ifndef URLFACTORY_H__
+#define URLFACTORY_H__
 
-#include <string>
-#include <cstring>
-#include <vector>
-#include <curl/curl.h>
+#include "urlparser.hpp"
+#include "robots.hpp"
+#include "network.hpp"
+#include "formater.hpp"
 
-#include "urlfactory/urlfactory.hpp"
-
-namespace mermoz
-{
-namespace common
-{
-
-long http_fetch(std::string& url,
-                std::string& content,
-                long time_out,
-                const std::string user_agent);
-
-long curl_wraper(std::string& url,
-                 std::string& header,
-                 std::string& content,
-                 long time_out,
-                 const std::string user_agent);
-
-size_t write_function (char* ptr,
-                       size_t size,
-                       size_t nmemb,
-                       void* userdata);
-
-} // namespace common
-} // namespace mermoz
-
-#endif // MERMOZ_HTTPFETCH_H__
+#endif // URLFACTORY_H__

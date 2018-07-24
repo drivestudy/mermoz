@@ -24,51 +24,26 @@
  * Author:
  * Noel Martin (n.martin@qwantresearch.com)
  *
- * Parsing routines are highly inspired from the 'gumbo-parser' examples:
- * - located at: https://github.com/google/gumbo-parser/tree/master/examples,
- * - and originaly written by: jdtang@google.com (Jonathan Tang).
- *
  */
 
-#ifndef MERMOZ_PARSER_H__
-#define MERMOZ_PARSER_H__
+#ifndef URLFACTORY_LOGS_H__
+#define URLFACTORY_LOGS_H__
 
 #include <iostream>
-#include <fstream>
 #include <sstream>
-#include <vector>
 #include <string>
 #include <cstring>
-#include <atomic>
-#include <map>
+#include <ctime>
+#include <iomanip>
 
-#include "gumbo.h"
-#include "urlfactory/urlfactory.hpp"
-
-#include "common/common.hpp"
-
-namespace mermoz
-{
-namespace spider
+namespace urlfactory
 {
 
-void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
-            mermoz::common::AsyncQueue<std::string>* parsed_queue,
-            std::atomic<uint64_t>* nparsed,
-            mermoz::common::MemSec* mem_sec,
-            bool* status);
+void print_log(std::string message);
+void print_strong_log(std::string message);
+void print_warning(std::string message);
+void print_error(std::string message);
 
-std::map<std::string, std::string> get_page_properties(GumboNode* node);
+} // namespace urlfactory
 
-std::string get_text(GumboNode* node);
-
-std::string get_links(GumboNode* node);
-
-void text_cleaner(std::string& s);
-
-void url_formating(std::string& rool_url, std::string& raw_urls, std::string& formated_urls);
-
-} // namespace spider
-} // namespace mermoz
-
-#endif // MERMOZ_PARSER_H__
+#endif // URLFACTORY_LOGS_H__

@@ -26,19 +26,12 @@
  *
  */
 
-#ifndef MERMOZ_HTTPFETCH_H__
-#define MERMOZ_HTTPFETCH_H__
+#ifndef URLFACTORY_NETWORK_H__
+#define URLFACTORY_NETWORK_H__
 
 #include <string>
-#include <cstring>
-#include <vector>
-#include <curl/curl.h>
 
-#include "urlfactory/urlfactory.hpp"
-
-namespace mermoz
-{
-namespace common
+namespace urlfactory
 {
 
 long http_fetch(std::string& url,
@@ -57,7 +50,6 @@ size_t write_function (char* ptr,
                        size_t nmemb,
                        void* userdata);
 
-} // namespace common
-} // namespace mermoz
+} // namespace urlfactory
 
-#endif // MERMOZ_HTTPFETCH_H__
+#endif // URLFACTORY_NETWORK_H__

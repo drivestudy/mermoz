@@ -5,17 +5,10 @@ Web crawler for multi-threaded computers.
 [here](#webmasters-computer) :loudspeaker:
 
 ## Build
-- First clone the current repository and DO NOT REMOVE `--recursive` because
-[`urlfactory`](https://www.github.com/QwantResearch/urlfactory) is needed:
+- First clone the current repository and which already contains
+[`urlfactory`](https://www.github.com/QwantResearch/urlfactory) which is needed:
 ```
-$ git clone --recursive https://github.com/QwantResearch/mermoz.git
-```
-
-- You need to compile [`urlfactory`](https://www.github.com/QwantResearch/urlfactory)
-by doing:
-```
-$ cd src/urlfactory
-$ make
+$ git clone https://github.com/QwantResearch/mermoz.git
 ```
 
 - Go to the root directory of `Mermoz` and check that you got all the needed

@@ -2,3 +2,4 @@ build/
 *.o
 seeds
 sets
+src/urlfactory/sync.sh
