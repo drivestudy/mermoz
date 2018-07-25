@@ -50,13 +50,9 @@ bool Robots::is_allowed(UrlParser& up)
   /*
    * Then we check Disallow rules
    */
-  std::cout << up;
   for (auto& wall : walls)
-  {
-    std::cout << wall;
     if (up >= wall)
       return false;
-  }
 
   return true;
 }
