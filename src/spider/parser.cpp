@@ -295,7 +295,7 @@ void url_formating(std::string& base, std::string& raw_urls, std::string& format
       {
         urlfactory::UrlParser up(link);
 
-        if (!up.complete_url)
+        if (!up.complete())
           up += baseup;
 
         if (up.valid_scheme({"http", "https"}))

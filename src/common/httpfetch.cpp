@@ -45,8 +45,8 @@ long http_fetch(std::string& url,
 {
   urlfactory::UrlParser up(url);
 
-  if (up.scheme.empty())
-    up.scheme = "http";
+  if (up.has_scheme())
+    up.set_scheme("http");
 
   url = up.get_url();
 
@@ -78,7 +78,7 @@ long http_fetch(std::string& url,
 
       urlfactory::UrlParser tmpup(url);
 
-      if (!tmpup.complete_url)
+      if (!tmpup.complete())
         tmpup += up;
 
       url = tmpup.get_url();

@@ -67,16 +67,14 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
                 status);
   t.detach();
 
-  while (*status)
-  {
+  while (*status) {
     std::string content;
     bool res = content_queue->pop_for(content, 1000);
 
     // Very important verification todo !
     throwlist = !res && parsed_urls.empty();
 
-    if (!content.empty() && res)
-    {
+    if (!content.empty() && res) {
       (*mem_sec) -= content.size();
 
       std::string url;
@@ -87,8 +85,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       mc::unpack(content, {&url, &text, &links, &http_status});
 
       std::set<std::string>::iterator it;
-      if ((it = to_visit.find(url)) != to_visit.end())
-      {
+      if ((it = to_visit.find(url)) != to_visit.end()) {
         to_visit.erase(it);
         (*mem_sec) -= url.size();
       }
@@ -99,16 +96,13 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       std::string link;
       std::istringstream iss(links);
 
-      while(!iss.eof())
-      {
+      while(!iss.eof()) {
         std::getline(iss, link);
 
-        if (link.size() > 1)
-        {
+        if (link.size() > 1) {
           if (visited.find(link) == visited.end()
               && to_visit.find(link) == to_visit.end()
-              && parsed_urls.find(link) == parsed_urls.end())
-          {
+              && parsed_urls.find(link) == parsed_urls.end()) {
             (*mem_sec) += link.size();
             parsed_urls.insert(link);
           }
@@ -119,33 +113,27 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     // dispatching tasks
     for(auto purlit = parsed_urls.begin();
         purlit != parsed_urls.end();
-       )
-    {
+       ) {
       urlfactory::UrlParser up(*purlit);
 
       std::map<std::string, urlfactory::Robots>::iterator mapit;
 
-      if ((mapit = robots.find(up.domain)) == robots.end())
-      {
-        if (robots_queue.size() > robots_limit)
-        {
+      if ((mapit = robots.find(up.get_host())) == robots.end()) {
+        if (robots_queue.size() > robots_limit) {
           robots.erase(robots_queue.front());
           robots_queue.pop();
         }
 
-        robots.emplace(up.domain, urlfactory::Robots(up.scheme + "://" + up.domain, "Qwantify", user_agent));
-        robots[up.domain].async_init();
-        robots_queue.push(up.domain);
+        robots.emplace(up.get_host(),
+                       urlfactory::Robots(up.get_url(true, true, false, false, false), "Qwantify", user_agent));
+        robots[up.get_host()].async_init();
+        robots_queue.push(up.get_host());
 
         purlit++;
-      }
-      else
-      {
-        if (mapit->second.good())
-        {
+      } else {
+        if (mapit->second.good()) {
           if (mapit->second.is_allowed(up)
-              && to_visit.find(*purlit) == to_visit.end())
-          {
+              && to_visit.find(*purlit) == to_visit.end()) {
             (*mem_sec) += 2*purlit->size();
 
             allowed_queue.push(*purlit);
@@ -154,9 +142,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
 
           (*mem_sec) -= purlit->size();
           purlit = parsed_urls.erase(purlit);
-        }
-        else
-        {
+        } else {
           purlit++;
         } // if (mapit->second.good())
       } // if (mapit == robots.end())
@@ -174,30 +160,22 @@ void dispatcher(mermoz::common::AsyncQueue<std::string>* outurls_queue,
   unsigned int stack_id {0};
   std::vector<std::queue<std::string>> stacks(num_stacks);
 
-  while (*status)
-  {
+  while (*status) {
     std::string url;
     bool res = allowed_queue->pop_for(url, 100);
 
-    if (res)
-    {
+    if (res) {
       stacks[stack_id].push(url);
 
-      if (stacks[stack_id].size() >= stack_size)
-      {
-        while (!stacks[stack_id].empty())
-        {
+      if (stacks[stack_id].size() >= stack_size) {
+        while (!stacks[stack_id].empty()) {
           outurls_queue->push(stacks[stack_id].front());
           stacks[stack_id].pop();
         }
       }
-    }
-    else if (*throwlist)
-    {
-      for (unsigned int sid = 0; sid < num_stacks; sid++)
-      {
-        while (!stacks[sid].empty())
-        {
+    } else if (*throwlist) {
+      for (unsigned int sid = 0; sid < num_stacks; sid++) {
+        while (!stacks[sid].empty()) {
           outurls_queue->push(stacks[sid].front());
           stacks[sid].pop();
         }

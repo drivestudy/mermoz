@@ -29,6 +29,7 @@ BINLIST = src/common/packer.o\
 					src/spider/parser.o\
 					src/spider/fetcher.o\
 					src/urlfactory/urlparser.o\
+					src/urlfactory/ssanitize.o\
 					src/urlfactory/robots.o\
 					src/urlfactory/logs.o\
 					src/urlfactory/network.o

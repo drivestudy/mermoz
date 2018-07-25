@@ -33,5 +33,6 @@
 #include "robots.hpp"
 #include "network.hpp"
 #include "formater.hpp"
+#include "ssanitize.hpp"
 
 #endif // URLFACTORY_H__

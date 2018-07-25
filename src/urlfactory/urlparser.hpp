@@ -29,9 +29,6 @@
 #ifndef URLFACTORY_URLPARSER_H__
 #define URLFACTORY_URLPARSER_H__
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <initializer_list>
@@ -42,101 +39,140 @@ namespace urlfactory
 class UrlParser
 {
 public:
-  UrlParser () : UrlParser("") {}
+  UrlParser () : UrlParser ("") {}
 
   UrlParser (std::string url) :
-    url(url),
-    inherit_scheme(false),
-    inherit_auth(false),
-    inherit_path(false),
-    complete_url(false),
-    is_file(false),
-    has_final_slash(false),
-    has_pattern(false),
-    do_parse(true),
-    do_scheme(false),
-    do_authority(false),
-    do_path(false), 
-    do_query(false),
-    do_fragment(false)
+    url(url), is_good(false)
   {
-    if (url.empty()) return;
     parse();
   }
 
-  ~UrlParser() {}
+  void set_url (std::string url)
+  {
+    this->url = url;
+  }
+
+  void set_scheme (std::string scheme)
+  {
+    this->scheme = scheme;
+  }
+
+  void parse();
+
+  std::string get_url(bool get_scheme = true,
+                      bool get_auth = true,
+                      bool get_path = true,
+                      bool get_query = true,
+                      bool get_frag = true);
+
+  std::string get_host()
+  {
+    return host;
+  }
+
+  bool empty()
+  {
+    return url.empty();
+  }
+
+  bool good()
+  {
+    return is_good;
+  }
+
+  bool complete()
+  {
+    return is_complete;
+  }
+
+  bool has_scheme()
+  {
+    return !scheme.empty();
+  }
+
+  bool has_authority()
+  {
+    return !auth.empty();
+  }
+
+  bool valid_scheme(std::initializer_list<std::string> schemes);
 
   UrlParser& operator+=(UrlParser& rhs);
   UrlParser operator+(UrlParser& rhs);
 
   friend std::ostream& operator<<(std::ostream& os, const UrlParser& rhs);
 
-  bool operator>(const UrlParser& rhs);
-  bool operator>=(const UrlParser& rhs);
+  bool operator>=(UrlParser& rhs);
+  bool operator>(UrlParser& rhs);
 
-  bool operator<(const UrlParser& rhs);
-  bool operator<=(const UrlParser& rhs);
-
-  void set_url(std::string url)
+  bool operator<=(UrlParser& rhs)
   {
-    this->url = url;
+    return !(*this > rhs);
   }
 
-  std::string get_url(bool get_query = true, bool get_fragment = true);
-
-  bool parse();
-
-  void exchange(std::string scheme1, std::string scheme2);
-
-  bool valid_scheme(std::initializer_list<std::string> schemes);
-
-  std::string url;
-
-  bool inherit_scheme;
-  bool inherit_auth;
-  bool inherit_path;
-  bool complete_url;
-
-  bool is_file;
-  bool has_final_slash;
-  bool has_pattern;
-
-  std::string scheme;
-
-  std::string authority;
-  std::string user;
-  std::string pass;
-  std::string domain;
-  std::string port;
-
-  std::string path;
-  std::vector<std::string> path_tree;
-
-  std::string query;
-  std::vector<std::string> query_args;
-
-  std::vector<std::string> patterns;
-
-  std::string fragment;
+  bool operator<(UrlParser& rhs)
+  {
+    return !(*this >= rhs);
+  }
 
 private:
-  bool do_parse;
+  /*
+   * Describes the state of parsing
+   */
+  enum {
+    NO_PARSE,
+    ERR_PARSE,
+    PARSE_SCHEME,
+    PARSE_AUTH,
+    PARSE_PATH,
+    PARSE_QUERY,
+    PARSE_FRAG
+  };
 
-  bool do_scheme;
-  bool do_authority;
-  bool do_path;
-  bool do_query;
-  bool do_fragment;
+  std::string url; // The URL itself
 
-  void parse_scheme(std::streambuf* sb);
-  void parse_authority(std::streambuf* sb);
-  void parse_path(std::streambuf* sb);
-  void parse_query(std::streambuf* sb);
-  void parse_fragment(std::streambuf* sb);
+  std::string scheme; // The extracted scheme
 
-  bool match_pattern(const UrlParser& rhs);
+  /*
+   * All the component located within AUTH
+   */
+  std::string auth; // Full authority
+  std::string user; // Username
+  std::string pass; // Password
+  std::string host; // Hostname
+  std::string port; // Port
+
+  /*
+   * Saves the PATH structure
+   */
+  std::string path; // The full path
+  std::vector<std::string> path_tree; // Each component of the path
+  std::string file_fomat; // If PATH refers to a file
+
+  std::string query; // The query of URL
+  std::vector<std::string> query_args; // Each args of the query
+
+  std::string frag; // The fragment of URL
+
+  bool is_good;
+
+  bool is_complete;
+  bool is_pattern;
+  bool is_file;
+
+  bool auth_less;
+
+  bool rel_scheme;
+  bool rel_auth;
+  bool rel_path;
+
+  int parse_scheme(const char* cstr, size_t& pos, const size_t pos_max);
+  int parse_auth(const char* cstr, size_t& pos, const size_t pos_max);
+  int parse_path(const char* cstr, size_t& pos, const size_t pos_max);
+  int parse_query(const char* cstr, size_t& pos, const size_t pos_max);
+  int parse_frag(const char* cstr, size_t& pos, const size_t pos_max);
 }; // class UrlParser
 
-} // namespace urlfactory
+} // urlfactory
 
 #endif // URLFACTORY_URLPARSER_H__
