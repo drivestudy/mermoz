@@ -74,6 +74,7 @@ long http_fetch(std::string& url,
     if (line.size() > pos + 10
         && pos != std::string::npos)
     {
+      std::cout << line << std::endl;
       url = line.substr(pos + 10);
 
       UrlParser tmpup(url);

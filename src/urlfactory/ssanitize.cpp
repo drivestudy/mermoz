@@ -45,7 +45,7 @@ void trim_beg (std::string& s)
        && pos < pos_max;
        pos++) {}
 
-  if (pos != 0) {
+  if (pos > 0) {
     s = s.substr(pos);
   }
 }
@@ -64,8 +64,8 @@ void trim_end (std::string& s)
        && pos > 0;
        pos--) {}
 
-  if (pos != pos_max - 1) {
-    s = s.substr(0, pos);
+  if (pos < pos_max - 1) {
+    s = s.substr(0, pos + 1);
   }
 }
 
