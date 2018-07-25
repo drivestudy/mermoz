@@ -428,19 +428,23 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
    */
   if (!rel_path && !auth_less) {
     if (cstr[pos] == '/') {
-      // Let's add the final root slash '/'
+      /*
+       * Let's add the root slash '/'
+       */
       path.push_back('/');
 
-      // We increment
+      /*
+       * We increment
+       */
       loc_pos++;
       pos++;
 
-      /* 
-       * We verify that we did no reached
-       * the end of the URL, if it's the
-       * case that's ok !
-       */
       if (pos >= pos_max) {
+        /*
+         * We verify that we did no reached
+         * the end of the URL, if it's the
+         * case that's ok !
+         */
         return NO_PARSE;
       }
     } else {
@@ -536,13 +540,17 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
     }
   }
 
-  if (loc_pos - slash_pos - 1 > 0) {
+  if (loc_pos - slash_pos - 1 > 0
+      && static_cast<unsigned long>(slash_pos + 1) < path.size()) {
     /*
      * Include the last level found
      *
      * It could add an empty level is URL looks like
      * 'example.com/john/doe/'
      *                      ^ the last slash
+     *
+     * The second verification excludes
+     * 'example.com/john/doe//'
      */
     path_tree.push_back(path.substr(slash_pos + 1, loc_pos - slash_pos - 1));
   }
@@ -683,7 +691,7 @@ int UrlParser::parse_frag(const char* cstr, size_t& pos, const size_t pos_max)
 }
 
 std::string UrlParser::get_url(bool get_scheme, bool get_auth, bool get_path,
-                                bool get_query, bool get_frag)
+                               bool get_query, bool get_frag)
 {
   std::string out_url;
 
@@ -957,7 +965,7 @@ bool UrlParser::operator>=(UrlParser& rhs)
   }
 
   /*
-   * We extract URL for comparison with same amout of 
+   * We extract URL for comparison with same amout of
    * details
    */
   std::string lhs_url = get_url(!(rel_scheme || rhs.rel_scheme),
@@ -1021,7 +1029,9 @@ bool UrlParser::operator>=(UrlParser& rhs)
   if (lhs_limit >= rhs_limit) {
     if (pat_pos < 0 && prev_pat_pos >= 0) {
       return true;
-    } else if (lhs_url[lhs_pos - 1] == '/' || lhs_url[lhs_pos] == '/') {
+    } else if (lhs_url[lhs_pos - 1] == '/'
+               || lhs_url[lhs_pos] == '/'
+               || lhs_url[lhs_pos] == '?') {
       return true;
     } else {
       return false;
@@ -1041,7 +1051,7 @@ bool UrlParser::operator>(UrlParser& rhs)
   }
 
   /*
-   * We extract URL for comparison with same amout of 
+   * We extract URL for comparison with same amout of
    * details
    */
   std::string lhs_url = get_url(!(rel_scheme || rhs.rel_scheme),
@@ -1105,7 +1115,9 @@ bool UrlParser::operator>(UrlParser& rhs)
   if (lhs_limit > rhs_limit) {
     if (pat_pos < 0 && prev_pat_pos >= 0) {
       return true;
-    } else if (lhs_url[lhs_pos - 1] == '/' || lhs_url[lhs_pos] == '/') {
+    } else if (lhs_url[lhs_pos - 1] == '/'
+               || lhs_url[lhs_pos] == '/'
+               || lhs_url[lhs_pos] == '?') {
       return true;
     } else {
       return false;
