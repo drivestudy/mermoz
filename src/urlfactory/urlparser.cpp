@@ -853,17 +853,21 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
       /*
        * We have to clean the URL
        */
-      for (auto ptreeit = path_tree.begin();
-           ptreeit != path_tree.end();) {
-        if (ptreeit->compare(".") == 0
+      for (auto i = path_tree.begin();
+           (i != path_tree.end()) && path_tree.size() > 0;) {
+        if (i->empty()) {
+          i = this->path_tree.erase(i);
+        } else if (ptreeit->compare(".") == 0
             || ptreeit->compare("/.") == 0) {
           ptreeit = path_tree.erase(ptreeit);
-        } else if (ptreeit->compare("..") == 0) {
-          if ((ptreeit = path_tree.erase(ptreeit)) != path_tree.begin()) {
-            ptreeit = path_tree.erase(ptreeit--);
+        } else if (i->compare("..") == 0) {
+          i = this->path_tree.erase(i);
+          if (i != path_tree.begin()) {
+            i--;
+            i = this->path_tree.erase(i);
           }
         } else {
-          ptreeit++;
+          i++;
         }
       }
       path = get_url(false, false, true, false, false);
