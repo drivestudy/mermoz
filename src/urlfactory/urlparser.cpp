@@ -428,9 +428,21 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
    */
   if (!rel_path && !auth_less) {
     if (cstr[pos] == '/') {
+      // Let's add the final root slash '/'
       path.push_back('/');
+
+      // We increment
       loc_pos++;
       pos++;
+
+      /* 
+       * We verify that we did no reached
+       * the end of the URL, if it's the
+       * case that's ok !
+       */
+      if (pos >= pos_max) {
+        return NO_PARSE;
+      }
     } else {
       return ERR_PARSE;
     }
@@ -532,9 +544,7 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
      * 'example.com/john/doe/'
      *                      ^ the last slash
      */
-    if (path.substr(slash_pos + 1, loc_pos - slash_pos - 1).compare("/") != 0) {
-      path_tree.push_back(path.substr(slash_pos + 1, loc_pos - slash_pos - 1));
-    }
+    path_tree.push_back(path.substr(slash_pos + 1, loc_pos - slash_pos - 1));
   }
 
   /*
@@ -694,7 +704,7 @@ std::string UrlParser::get_url(bool get_scheme, bool get_auth, bool get_path,
     out_url.append("//").append(auth);
   }
 
-  if (get_path) {
+  if (get_path && !path.empty()) {
     /*
      * Reconstructing clean path
      */
@@ -857,9 +867,8 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
            (i != path_tree.end()) && path_tree.size() > 0;) {
         if (i->empty()) {
           i = this->path_tree.erase(i);
-        } else if (ptreeit->compare(".") == 0
-            || ptreeit->compare("/.") == 0) {
-          ptreeit = path_tree.erase(ptreeit);
+        } else if (i->compare(".") == 0 || i->compare("/.") == 0) {
+          i = path_tree.erase(i);
         } else if (i->compare("..") == 0) {
           i = this->path_tree.erase(i);
           if (i != path_tree.begin()) {
