@@ -47,7 +47,7 @@ long http_fetch(std::string& url,
                 const std::string user_agent);
 
 long curl_wraper(std::string& url,
-                 std::string& header,
+                 std::string& eff_url,
                  std::string& content,
                  long time_out,
                  const std::string user_agent);

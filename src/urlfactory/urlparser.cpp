@@ -848,11 +848,22 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
           if (!path_tree.empty()) {
             path_tree.pop_back(); // removes FILE
           }
+
+          /*
+           * Reseting files properties
+           */
+          is_file = false;
+          file_fomat.clear();
         }
         path_tree.insert(path_tree.end(),
                          rhs.path_tree.begin(),
                          rhs.path_tree.end());
 
+        /*
+         * Inherhit FILE properties from RHS
+         */
+        is_file = rhs.is_file;
+        file_fomat = rhs.file_fomat;
 
         /*
          * RHS is only a relative PATH
