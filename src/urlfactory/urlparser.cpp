@@ -527,7 +527,6 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
           /*
            * We two slashes side by site. Skip it !
            */
-          loc_pos++;
           pos++;
           continue;
         }
