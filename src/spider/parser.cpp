@@ -299,8 +299,7 @@ void url_formating(std::string& base, std::string& raw_urls, std::string& format
         if (!up.complete())
           up += baseup;
 
-        if (up.valid_scheme({"http", "https"})
-            && up.valid_file({"html", "htm", "php"})) {
+        if (up.valid_scheme({"http", "https"})) {
           /*
            * Do not follow links with fragment, it is the same page...
            */

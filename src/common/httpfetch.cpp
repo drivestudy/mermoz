@@ -52,10 +52,9 @@ long http_fetch(std::string& url,
   url = up.get_url();
 
   std::string eff_url;
-  long res;
+  long res = curl_wraper(url, eff_url, content, time_out, user_agent);
 
-  if (!((res = curl_wraper(url, eff_url, content, time_out, user_agent)) >= 200
-        && res < 300)) {
+  if (!(res >= 200 && res < 300)) {
     std::ostringstream oss;
     oss << url << " (" << res << ")";
     print_warning(oss.str());

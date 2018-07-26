@@ -72,7 +72,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
     bool res = content_queue->pop_for(content, 1000);
 
     // Very important verification todo !
-    throwlist = !res && parsed_urls.empty();
+    throwlist = !res && allowed_queue.empty();
 
     if (!content.empty() && res) {
       (*mem_sec) -= content.size();
