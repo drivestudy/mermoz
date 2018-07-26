@@ -300,8 +300,12 @@ void url_formating(std::string& base, std::string& raw_urls, std::string& format
           up += baseup;
 
         if (up.valid_scheme({"http", "https"})
-            && up.valid_file({"html", "htm", "php"}))
-          formated_urls.append(up.get_url()).append("\n");
+            && up.valid_file({"html", "htm", "php"})) {
+          /*
+           * Do not follow links with fragment, it is the same page...
+           */
+          formated_urls.append(up.get_url(true, true, true, true, false)).append("\n");
+        }
       }
     }
     else
