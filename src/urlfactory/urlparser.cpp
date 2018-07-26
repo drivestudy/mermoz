@@ -386,7 +386,9 @@ int UrlParser::parse_auth(const char* cstr, size_t& pos, const size_t pos_max)
   if (pos >= pos_max) {
     /*
      * The end of the string, ok. Exits !
+     * We append a '/' to the path for possible upcomming '+'
      */
+    path.append("/");
     return NO_PARSE;
   } else if (next_step != NO_PARSE) {
     /*
@@ -808,21 +810,25 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
          * So we have a relative PATH
          * We will inherit ROOT from the RHS
          */
-        if (rhs.is_file) {
+        if (rhs.path.back() != '/') {
           /*
-           * In the case of an URL refering to a file,
-           * we use its parent directory as reference:
+           * We verify our position with the path.
+           * If it does not finishes by a '/' we 
+           * neglect all chars until last right '/'
            *
-           * 'sth' += '/john/doe/file.format'
-           *  = '/john/doe/sth'
+           * 'sth' += '/john/doe'
+           *  = '/john/sth'
            */
           path_tree.insert(path_tree.begin(),
                            rhs.path_tree.begin(),
                            rhs.path_tree.end() - 1);
-          //                -1 because of FILE ^
+          //                -1 because of NO / ^
         } else {
           /*
-           * No file, only directories easier !
+           * We are refering to a directory
+           *
+           * 'sth' += '/john/doe/'
+           * = '/john/doe/sth'
            */
           path_tree.insert(path_tree.begin(),
                            rhs.path_tree.begin(),
@@ -835,18 +841,19 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
          * RHS is only a relative PATH
          *
          * '/john/doe' += 'sth'
-         * = '/john/doe/sth'
+         * = '/john/sth'
          */
-        if (is_file) {
+        if (path.back() != '/') {
           /*
-           * In the case of an URL refering to a file,
-           * we use its parent directory as reference:
+           * We verify our position with the path.
+           * If it does not finishes by a '/' we 
+           * neglect all chars until last right '/'
            *
-           * '/john/doe/file.format' += 'sth'
-           *  = '/john/doe/sth'
+           * '/john/doe' += 'sth'
+           *  = '/john/sth'
            */
           if (!path_tree.empty()) {
-            path_tree.pop_back(); // removes FILE
+            path_tree.pop_back(); // removes segment until '/'
           }
 
           /*
@@ -918,8 +925,8 @@ UrlParser UrlParser::operator+(UrlParser& rhs)
 std::ostream& operator<<(std::ostream& os, const UrlParser& rhs)
 {
   if (rhs.is_good) {
-    os << "[URLPARSER2] Results for:" << std::endl;
-    os << " URL: " << rhs.url << std::endl << std::endl;
+    os << "[URLPARSER] Results for:" << std::endl;
+    os << " IN URL: " << rhs.url << std::endl << std::endl;
 
     os << " SCHEME    " << rhs.scheme << std::endl << std::endl;
 
@@ -962,7 +969,73 @@ std::ostream& operator<<(std::ostream& os, const UrlParser& rhs)
     os << "[URLPARSER2] Malformed URL" << std::endl;
   }
 
-  return os;
+  return os << std::endl;
+}
+
+bool UrlParser::operator==(UrlParser& rhs)
+{
+  if (is_pattern && rhs.is_pattern) {
+    /*
+     * Come on, how can I compare two patterns...
+     */
+    return true;
+  }
+
+  /*
+   * We extract URL for comparison with same amout of
+   * details
+   */
+  std::string lhs_url = get_url(!(rel_scheme || rhs.rel_scheme),
+                                !(rel_auth || rhs.rel_auth));
+
+  std::string rhs_url = rhs.get_url(!(rel_scheme || rhs.rel_scheme),
+                                    !(rel_auth || rhs.rel_auth));
+
+  /*
+   * There is two iterators in case of PATTERNS
+   */
+  size_t lhs_pos {0};
+  size_t lhs_limit = lhs_url.size();
+
+  size_t rhs_pos {0};
+  size_t rhs_limit = rhs_url.size();
+
+
+  /*
+   * Let's see if URLs are matching
+   */
+  int res = url_matching(lhs_url, lhs_pos,
+                         rhs_url, rhs_pos);
+
+  if (res == 1) {
+    /*
+     * This is a ending pattern case
+     * (which says that LHS is at least equal to RHS)
+     *
+     * But here 'operator==(&)' returns TRUE
+     * if a pattern is matched !
+     * Because an pure equality between string and pattern
+     * DOES NOT exist.
+     */
+    return true;
+  } else if (res == 0) {
+    /*
+     * Everything worked fine, all chars and patterns (if getting one)
+     * where correctly verified.
+     *
+     * But we are outside of a pattern,
+     * and the equality means that :
+     * - LHS_POS reached LHS_LIMIT,
+     * - and RHS_POS reached RHS_LIMIT.
+     */
+    return lhs_pos == lhs_limit && rhs_pos == rhs_limit;
+  } else {
+    /*
+     * The matching algorithm said
+     * that outside of a pattern two chars DID NOT matched !
+     */
+    return false;
+  }
 }
 
 bool UrlParser::operator>=(UrlParser& rhs)
@@ -993,61 +1066,65 @@ bool UrlParser::operator>=(UrlParser& rhs)
   size_t rhs_pos {0};
   size_t rhs_limit = rhs_url.size();
 
-  long pat_pos {-1}; // saving the last pattern position
-  long prev_pat_pos {-1}; // saving the precedent pattern position
+  /*
+   * Let's see if URLs are matching
+   */
+  int res = url_matching(lhs_url, lhs_pos,
+                         rhs_url, rhs_pos);
 
-  while ((lhs_pos < lhs_limit) && (rhs_pos < rhs_limit)) {
-    if (pat_pos >= 0) {
-      // We are reading a pattern
-      if (lhs_url[lhs_pos] != rhs_url[rhs_pos]) {
-        lhs_pos++;
+  if (res == 1) {
+    /*
+     * This is a ending pattern case
+     * which says that LHS is at least equal to RHS
+     */
+    return true;
+  } else if (res == -1) {
+    /*
+     * The matching algorithm said
+     * that outside of a pattern two chars DID NOT matched !
+     */
+    return false;
+  } else {
+    /*
+     * Everything worked fine, all chars and patterns (if getting one)
+     * where correctly verified.
+     *
+     * But we are outside of a pattern, so the LHS_POS >= LHS_LIMIT
+     */
+    if (lhs_pos == lhs_limit && rhs_pos == rhs_limit) {
+      /*
+       * In this case, LHS and RHS reached their limit
+       * we call it equality !
+       */
+      return true;
+    } else if (lhs_pos < lhs_limit && rhs_pos == rhs_limit) {
+      /*
+       * Great, some terms are remaning within LHS
+       */
+      if (lhs_url[lhs_pos - 1] == '/'
+          || lhs_url[lhs_pos] == '/'
+          || lhs_url[lhs_pos] == '?') {
+        /*
+         * One found separator:
+         * - '/p' > 'p'
+         * - 'p/' > 'p'
+         * - 'p?' > 'p'
+         */
+        return true;
       } else {
-        prev_pat_pos = pat_pos;
-        pat_pos = -1;
-        lhs_pos++;
-        rhs_pos++;
+        /*
+         * No separator, different directory:
+         * 'p10' !(>=) 'p'
+         */
+        return false;
       }
     } else {
-      // We are reading a common string
-      if (rhs_url[rhs_pos] == '*') {
-        // Hey a pattern !
-        pat_pos = rhs_pos;
-        if (rhs_pos + 1 < rhs_limit) {
-          // Verify that the pattern is not at the end !
-          rhs_pos++;
-        } else {
-          // The pattern is at the end and everything worked fine
-          // thus the LHS is >= to RHS
-          return true;
-        }
-      } else if (lhs_url[lhs_pos] != rhs_url[rhs_pos]) {
-        // Diffrent chars readed
-        if (prev_pat_pos >= 0) {
-          pat_pos = prev_pat_pos;
-          rhs_pos = pat_pos + 1;
-          prev_pat_pos = -1;
-        } else {
-          return false;
-        }
-      } else {
-        lhs_pos++;
-        rhs_pos++;
-      }
-    }
-  }
-
-  if (lhs_limit >= rhs_limit) {
-    if (pat_pos < 0 && prev_pat_pos >= 0) {
-      return true;
-    } else if (lhs_url[lhs_pos - 1] == '/'
-               || lhs_url[lhs_pos] == '/'
-               || lhs_url[lhs_pos] == '?') {
-      return true;
-    } else {
+      /*
+       * It seems that RHS reached the END,
+       * but not LHS. Thus LHS < RHS
+       */
       return false;
     }
-  } else {
-    return false;
   }
 }
 
@@ -1079,62 +1156,165 @@ bool UrlParser::operator>(UrlParser& rhs)
   size_t rhs_pos {0};
   size_t rhs_limit = rhs_url.size();
 
+  /*
+   * Let's see if URLs are matching
+   */
+  int res = url_matching(lhs_url, lhs_pos,
+                         rhs_url, rhs_pos);
+
+  if (res == 1) {
+    /*
+     * This is a ending pattern case
+     * which says that LHS is at least equal to RHS
+     *
+     * So one has to check that LHS_POS < LHS_LIMIT
+     */
+    return lhs_pos < lhs_limit;
+  } else if (res == -1) {
+    /*
+     * The matching algorithm said
+     * that outside of a pattern two chars DID NOT matched !
+     */
+    return false;
+  } else {
+    /*
+     * Everything worked fine, all chars and patterns (if getting one)
+     * where correctly verified.
+     *
+     * But we are outside of a pattern, so the LHS_POS >= LHS_LIMIT
+     */
+    if (lhs_pos == lhs_limit && rhs_pos == rhs_limit) {
+      /*
+       * In this case, LHS and RHS reached their limit
+       * they are equal, but not supperior to...
+       */
+      return false;
+    } else if (lhs_pos < lhs_limit && rhs_pos == rhs_limit) {
+      /*
+       * Great, some terms are remaning within LHS
+       */
+      if (lhs_url[lhs_pos - 1] == '/'
+          || lhs_url[lhs_pos] == '/'
+          || lhs_url[lhs_pos] == '?') {
+        /*
+         * One found separator:
+         * - '/p' > 'p'
+         * - 'p/' > 'p'
+         * - 'p?' > 'p'
+         */
+        return true;
+      } else {
+        /*
+         * No separator, different directory:
+         * 'p10' !(>=) 'p'
+         */
+        return false;
+      }
+    } else {
+      /*
+       * It seems that RHS reached the END,
+       * but not LHS. Thus LHS < RHS
+       */
+      return false;
+    }
+  }
+}
+
+int UrlParser::url_matching(std::string& lhs, size_t& lhs_pos,
+                            std::string& rhs, size_t& rhs_pos)
+{
   long pat_pos {-1}; // saving the last pattern position
   long prev_pat_pos {-1}; // saving the precedent pattern position
 
+  size_t lhs_limit = lhs.size();
+  size_t rhs_limit = rhs.size();
+
   while ((lhs_pos < lhs_limit) && (rhs_pos < rhs_limit)) {
     if (pat_pos >= 0) {
-      // We are reading a pattern
-      if (lhs_url[lhs_pos] != rhs_url[rhs_pos]) {
+      /*
+       * We are currently reading a pattern
+       */
+      if (lhs[lhs_pos] != rhs[rhs_pos]) {
+        /*
+         * The char read in LHS does not
+         * match the restart char of RHS.
+         * So, one continues reading of the pattern.
+         */
         lhs_pos++;
       } else {
-        prev_pat_pos = pat_pos;
-        pat_pos = -1;
+        /*
+         * LHS char matched the restart char of RHS
+         * We continue to read strings as common ones.
+         */
+        prev_pat_pos = pat_pos; // saving the '*' pos
+        pat_pos = -1; // no pattern currently read
+
+        /*
+         * Normal reading, incrementing both
+         */
         lhs_pos++;
         rhs_pos++;
       }
     } else {
-      // We are reading a common string
-      if (rhs_url[rhs_pos] == '*') {
-        // Hey a pattern !
-        pat_pos = rhs_pos;
+      /*
+       * We are reading a common string
+       */
+      if (rhs[rhs_pos] == '*') {
+        /*
+         * We found a pattern delimiter in RHS
+         */
+        pat_pos = rhs_pos; // saving the delimiter pos
+
+        /*
+         * We verify that we does not have a ending pattern:
+         * 'example.com/sth*'
+         */
         if (rhs_pos + 1 < rhs_limit) {
-          // Verify that the pattern is not at the end !
-          rhs_pos++;
+          rhs_pos++; // Let's move to the RHS restart char
         } else {
-          // The pattern is at the end and everything worked fine
-          // thus the LHS is >= to RHS
-          return true;
+          /*
+           * We reached the end of the pattern in RHS
+           * Terms are perhaps remaining in LHS,
+           * thus LHS is at least EQUAL to RHS.
+           */
+          return 1;
         }
-      } else if (lhs_url[lhs_pos] != rhs_url[rhs_pos]) {
-        // Diffrent chars readed
+      } else if (lhs[lhs_pos] != rhs[rhs_pos]) {
+        /*
+         * We found diffrent chars in LHS and RHS
+         */
         if (prev_pat_pos >= 0) {
-          pat_pos = prev_pat_pos;
-          rhs_pos = pat_pos + 1;
-          prev_pat_pos = -1;
+          /*
+           * A pattern has been shown,
+           * so it was a false positive restart
+           */
+          pat_pos = prev_pat_pos; // setting the '*' position
+          rhs_pos = pat_pos + 1; // putting RHS to the restart char
+          prev_pat_pos = -1; // reseting prev_pat_pos
         } else {
-          return false;
+          /*
+           * Not in a pattern,
+           * clearly LHS != RHS
+           */
+          return -1;
         }
       } else {
+        /*
+         * We reading a common string
+         * and char are equal, let's continue !
+         */
         lhs_pos++;
         rhs_pos++;
       }
     }
   }
 
-  if (lhs_limit > rhs_limit) {
-    if (pat_pos < 0 && prev_pat_pos >= 0) {
-      return true;
-    } else if (lhs_url[lhs_pos - 1] == '/'
-               || lhs_url[lhs_pos] == '/'
-               || lhs_url[lhs_pos] == '?') {
-      return true;
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
+  /*
+   * Return 0 means that:
+   * - all pattern matched yet
+   * - all chars in common string where equal
+   */
+  return 0;
 }
 
 bool UrlParser::valid_scheme(std::initializer_list<std::string> schemes)
