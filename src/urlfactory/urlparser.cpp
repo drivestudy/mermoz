@@ -60,7 +60,7 @@ void UrlParser::parse()
    */
   is_complete = {false};
   is_pattern = {false};
-  is_file = {false};
+  is_dir = {false};
 
   if (!url.empty()) {
     /*
@@ -388,7 +388,6 @@ int UrlParser::parse_auth(const char* cstr, size_t& pos, const size_t pos_max)
      * The end of the string, ok. Exits !
      * We append a '/' to the path for possible upcomming '+'
      */
-    path.append("/");
     return NO_PARSE;
   } else if (next_step != NO_PARSE) {
     /*
@@ -425,20 +424,11 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
    * - if URL starts with '/', URL looks like /PATH,
    * - and finaly all other relative pathes PATH = [a-Z]
    *
-   * The first two one cases, ARE NOT relative path, so they
-   * start with a slash '/'
+   * In order to add clean segments, we avoid the first slash
    */
   if (!rel_path && !auth_less) {
     if (cstr[pos] == '/') {
-      /*
-       * Let's add the root slash '/'
-       */
-      path.push_back('/');
-
-      /*
-       * We increment
-       */
-      loc_pos++;
+      // We increment only the reader
       pos++;
 
       if (pos >= pos_max) {
@@ -447,6 +437,8 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
          * the end of the URL, if it's the
          * case that's ok !
          */
+        is_dir = true;
+        path.append("/");
         return NO_PARSE;
       }
     } else {
@@ -503,26 +495,26 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
               /*
                * It refers to a parent, let's erase the parent directory
                */
-              if (!path_tree.empty()) {
+              if (!segments.empty()) {
                 /*
                  * Before poping, verify that the vectory is not empty
                  * otherwise... !!! Segmentation fault !!!
                  */
-                path_tree.pop_back();
+                segments.pop_back();
               }
               slash_pos = loc_pos;
             } else {
               /*
                * Good, it is well formated
                */
-              path_tree.push_back(subpath);
+              segments.push_back(subpath);
               slash_pos = loc_pos;
             }
           } else {
             /*
              * Relative path, no matter of './' or '../'
              */
-            path_tree.push_back(path.substr(slash_pos + 1, loc_pos - slash_pos - 1));
+            segments.push_back(path.substr(slash_pos + 1, loc_pos - slash_pos - 1));
             slash_pos = loc_pos;
           }
         } else {
@@ -553,24 +545,21 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
      * The second verification excludes
      * 'example.com/john/doe//'
      */
-    path_tree.push_back(path.substr(slash_pos + 1, loc_pos - slash_pos - 1));
+    segments.push_back(path.substr(slash_pos + 1, loc_pos - slash_pos - 1));
   }
 
   /*
-   * If the URL refers to a file, their is an extension:
-   * 'sth.format' and the string length is more than 1
+   * If the URL refers to a directory, the path ends with a
+   * slash
    */
-  if (!path_tree.empty()) {
-    size_t format_pos;
-    is_file = ((format_pos = path_tree.back().find(".")) != std::string::npos)
-              && (path_tree.back().size() > 1);
+  is_dir = path.back() == '/';
 
+  if (!rel_path) {
     /*
-     * Extracting the file format
+     * After all the path parsing is
+     * done we add the '/' root slash
      */
-    if (is_file) {
-      file_fomat = path_tree.back().substr(format_pos + 1);
-    }
+    path.insert(0, "/");
   }
 
   /*
@@ -630,7 +619,7 @@ int UrlParser::parse_query(const char* cstr, size_t& pos, const size_t pos_max)
           /*
            * Only save non-empty queries
            */
-          query_args.push_back(query.substr(sep_pos + 1, loc_pos - sep_pos - 1));
+          arguments.push_back(query.substr(sep_pos + 1, loc_pos - sep_pos - 1));
         }
         sep_pos = loc_pos;
       }
@@ -644,7 +633,7 @@ int UrlParser::parse_query(const char* cstr, size_t& pos, const size_t pos_max)
     /*
      * Only save non-empty queries
      */
-    query_args.push_back(query.substr(sep_pos + 1, loc_pos - sep_pos - 1));
+    arguments.push_back(query.substr(sep_pos + 1, loc_pos - sep_pos - 1));
   }
 
   /*
@@ -713,35 +702,28 @@ std::string UrlParser::get_url(bool get_scheme, bool get_auth, bool get_path,
     out_url.append("//").append(auth);
   }
 
-  if (get_path && !path.empty()) {
+  if (get_path) {
     /*
      * Reconstructing clean path
      */
     std::string out_path;
-    for (auto& elem : path_tree) {
-      out_path.append(elem).append("/");
-    }
 
-    if (!rel_path && !auth_less) {
+    if (!rel_path) {
       /*
-       * The path MUST start with '/'
+       * If a path is not relative, it has to start with a '/'
        */
-      if (out_path.front() != '/') {
-        out_path.insert(0, "/");
-      }
+      out_path = "/";
     }
 
     /*
-     * When editing the PATH we MUST keep or not
-     * the last '/' if it was originally included
+     * Let's add all the segments
      */
-    if (path.size() > 1 && path.back() != '/' && !out_path.empty()) {
-      /*
-       * We check than path.size() > 1,
-       * because if not path.front() == path.back()
-       * and both could be equal to '/'
-       */
-      out_path.pop_back(); // removes last '/'
+    for (auto& seg : segments) {
+      out_path.append(seg).append("/");
+    }
+
+    if (!is_dir) {
+      out_path.pop_back();
     }
 
     out_url.append(out_path);
@@ -800,105 +782,105 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
       rel_auth = false;
     }
 
-    if (rel_path ^ rhs.rel_path) {
+    if (rel_path && !rhs.rel_path) {
       /*
-       * We check if LHS xor RHS has a relative
-       * PATH
+       * So we have a relative PATH
+       * We will inherit ROOT from the RHS
        */
-      if (rel_path) {
+      if (rhs.path.back() != '/') {
         /*
-         * So we have a relative PATH
-         * We will inherit ROOT from the RHS
+         * We verify our position with the path.
+         * If it does not finishes by a '/' we
+         * neglect all chars until last right '/'
+         *
+         * 'sth' += '/john/doe'
+         *  = '/john/sth'
          */
-        if (rhs.path.back() != '/') {
-          /*
-           * We verify our position with the path.
-           * If it does not finishes by a '/' we 
-           * neglect all chars until last right '/'
-           *
-           * 'sth' += '/john/doe'
-           *  = '/john/sth'
-           */
-          path_tree.insert(path_tree.begin(),
-                           rhs.path_tree.begin(),
-                           rhs.path_tree.end() - 1);
-          //                -1 because of NO / ^
-        } else {
-          /*
-           * We are refering to a directory
-           *
-           * 'sth' += '/john/doe/'
-           * = '/john/doe/sth'
-           */
-          path_tree.insert(path_tree.begin(),
-                           rhs.path_tree.begin(),
-                           rhs.path_tree.end());
+        if (segments.size() > 1) {
+          segments.insert(segments.begin(),
+                          rhs.segments.begin(),
+                          rhs.segments.end() - 1);
         }
-
-        rel_path = false;
       } else {
         /*
-         * RHS is only a relative PATH
+         * We are refering to a directory
          *
-         * '/john/doe' += 'sth'
-         * = '/john/sth'
+         * 'sth' += '/john/doe/'
+         * = '/john/doe/sth'
          */
+        segments.insert(segments.begin(),
+                        rhs.segments.begin(),
+                        rhs.segments.end());
+      }
+
+      rel_path = false;
+    } else if (!rel_path || !rhs.rel_path) {
+      /*
+       * LHS and RHS has complete path
+       * '/' += '/sth'
+       * = '/sth'
+       *
+       * RHS has a relative path
+       *
+       * '/john/doe' += 'sth'
+       * = '/john/sth'
+       */
+      if (!rel_path && !rhs.rel_path) {
+        segments.clear();
+        segments = rhs.segments;
+      } else {
         if (path.back() != '/') {
           /*
            * We verify our position with the path.
-           * If it does not finishes by a '/' we 
+           * If it does not finishes by a '/' we
            * neglect all chars until last right '/'
            *
            * '/john/doe' += 'sth'
            *  = '/john/sth'
            */
-          if (!path_tree.empty()) {
-            path_tree.pop_back(); // removes segment until '/'
+          if (!segments.empty()) {
+            segments.pop_back(); // removes segment until '/'
           }
-
-          /*
-           * Reseting files properties
-           */
-          is_file = false;
-          file_fomat.clear();
         }
-        path_tree.insert(path_tree.end(),
-                         rhs.path_tree.begin(),
-                         rhs.path_tree.end());
 
-        /*
-         * Inherhit FILE properties from RHS
-         */
-        is_file = rhs.is_file;
-        file_fomat = rhs.file_fomat;
-
-        /*
-         * RHS is only a relative PATH
-         * and could be made of QUERY & FRAG
-         * 'john/doe/sth?query#frag'
-         */
-        query = rhs.query;
-        query_args = rhs.query_args;
-        frag = rhs.frag;
+        segments.insert(segments.end(),
+                        rhs.segments.begin(),
+                        rhs.segments.end());
       }
 
-    } // if (rel_path ^ rhs.rel_path)
+      /*
+       * Inherhit DIR properties from RHS
+       */
+      is_dir = rhs.is_dir;
+
+      /*
+       * RHS is only a relative PATH
+       * and could be made of QUERY & FRAG
+       * 'john/doe/sth?query#frag'
+       */
+      query = rhs.query;
+      arguments = rhs.arguments;
+      frag = rhs.frag;
+
+      std::cout << path << std::endl;
+      rel_path = false;
+    }
 
     if (!rel_path) {
       /*
        * We have to clean the URL
        */
-      for (auto i = path_tree.begin();
-           (i != path_tree.end()) && path_tree.size() > 0;) {
+      for (auto i = segments.begin();
+           (i != segments.end()) && segments.size() > 0;) {
         if (i->empty()) {
-          i = this->path_tree.erase(i);
+          i = this->segments.erase(i);
         } else if (i->compare(".") == 0 || i->compare("/.") == 0) {
-          i = path_tree.erase(i);
+          i = segments.erase(i);
         } else if (i->compare("..") == 0) {
-          i = this->path_tree.erase(i);
-          if (i != path_tree.begin()) {
+          i = this->segments.erase(i);
+          if (i != segments.begin()) {
             i--;
-            i = this->path_tree.erase(i);
+            i = this->segments.erase(i);
           }
         } else {
           i++;
@@ -937,16 +919,12 @@ std::ostream& operator<<(std::ostream& os, const UrlParser& rhs)
     os << "   Port    " << rhs.port << std::endl << std::endl;
 
     os << " PATH      " << rhs.path << std::endl;
-    for (auto& elem : rhs.path_tree) {
+    for (auto& elem : rhs.segments) {
       os << "   /       " << elem << std::endl;
     }
-    if (rhs.is_file) {
-      os << " File fmt. " << rhs.file_fomat << std::endl;
-    }
-    os << std::endl;
 
     os << " QUERY     " << rhs.query << std::endl;
-    for (auto& elem : rhs.query_args) {
+    for (auto& elem : rhs.arguments) {
       os << "   &       " << elem << std::endl;
     }
     os << std::endl;
@@ -1321,18 +1299,6 @@ bool UrlParser::valid_scheme(std::initializer_list<std::string> schemes)
 {
   for (auto& s : schemes)
     if(s.compare(scheme) == 0)
-      return true;
-
-  return false;
-}
-
-bool UrlParser::valid_file(std::initializer_list<std::string> file_formats)
-{
-  if (!is_file)
-    return true;
-
-  for (auto& f : file_formats)
-    if(f.compare(file_fomat) == 0)
       return true;
 
   return false;

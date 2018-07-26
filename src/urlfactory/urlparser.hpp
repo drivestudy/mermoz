@@ -154,12 +154,6 @@ public:
    */
   bool valid_scheme(std::initializer_list<std::string> schemes);
 
-  /*! Verify that URL file format matches with allowed file formats
-   *  Note: if 'is_file = false' the function returns 'true'
-   * \param schemes Allowed file formats to check
-   */
-  bool valid_file(std::initializer_list<std::string> file_formats);
-
   /*! Add to the current UrlParser an RHS
    * \param rhs UrlParser Right hand side
    */
@@ -231,11 +225,11 @@ private:
    * Saves the PATH structure
    */
   std::string path; // The full path
-  std::vector<std::string> path_tree; // Each component of the path
+  std::vector<std::string> segments; // Each component of the path
   std::string file_fomat; // If PATH refers to a file
 
   std::string query; // The query of URL
-  std::vector<std::string> query_args; // Each args of the query
+  std::vector<std::string> arguments; // Each args of the query
 
   std::string frag; // The fragment of URL
 
@@ -243,7 +237,7 @@ private:
 
   bool is_complete; // is not a relative URL
   bool is_pattern; // has a '*' somewhere
-  bool is_file; // has 'file.format' at the end of PATH
+  bool is_dir; // has 'file.format' at the end of PATH
 
   bool auth_less; // special kind like 'mailto:', 'tel:', etc...
 
