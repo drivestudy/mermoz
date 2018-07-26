@@ -96,6 +96,7 @@ public:
   }
 
   bool valid_scheme(std::initializer_list<std::string> schemes);
+  bool valid_file(std::initializer_list<std::string> file_formats);
 
   UrlParser& operator+=(UrlParser& rhs);
   UrlParser operator+(UrlParser& rhs);

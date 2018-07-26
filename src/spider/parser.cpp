@@ -291,14 +291,16 @@ void url_formating(std::string& base, std::string& raw_urls, std::string& format
     {
       if (link.find("javascript") == std::string::npos
           && link.find("mailto") == std::string::npos
-          && link.find(",") == std::string::npos)
+          && link.find(",") == std::string::npos
+          && link.find("404") == std::string::npos)
       {
         urlfactory::UrlParser up(link);
 
         if (!up.complete())
           up += baseup;
 
-        if (up.valid_scheme({"http", "https"}))
+        if (up.valid_scheme({"http", "https"})
+            && up.valid_file({"html", "htm", "php"}))
           formated_urls.append(up.get_url()).append("\n");
       }
     }

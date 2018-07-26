@@ -1146,4 +1146,16 @@ bool UrlParser::valid_scheme(std::initializer_list<std::string> schemes)
   return false;
 }
 
+bool UrlParser::valid_file(std::initializer_list<std::string> file_formats)
+{
+  if (!is_file)
+    return true;
+
+  for (auto& f : file_formats)
+    if(f.compare(file_fomat) == 0)
+      return true;
+
+  return false;
+}
+
 } // namespace urlfactory
