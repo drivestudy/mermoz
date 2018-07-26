@@ -722,7 +722,7 @@ std::string UrlParser::get_url(bool get_scheme, bool get_auth, bool get_path,
       out_path.append(seg).append("/");
     }
 
-    if (!is_dir) {
+    if (!is_dir && !out_path.empty()) {
       out_path.pop_back();
     }
 
@@ -796,7 +796,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
          * 'sth' += '/john/doe'
          *  = '/john/sth'
          */
-        if (segments.size() > 1) {
+        if (rhs.segments.size() > 1) {
           segments.insert(segments.begin(),
                           rhs.segments.begin(),
                           rhs.segments.end() - 1);
@@ -862,7 +862,6 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
       arguments = rhs.arguments;
       frag = rhs.frag;
 
-      std::cout << path << std::endl;
       rel_path = false;
     }
 
