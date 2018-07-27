@@ -39,12 +39,20 @@ url1
 [urls...]
 ```
 
-## Webmasters? :computer:
+## Webmasters :computer:
 Probably, you see us crawling your website, we announce ourselves as:
 ```
 Mozilla/5.0 (compatible; Qwantify/Mermoz/0.1; +https://www.qwant.com/; +https://www.github.com/QwantResearch/mermoz)
 ```
 with the following IPs `194.187.171.0/24`.
+
+### :warning: Something wrong? :warning:
+If when we visited your website something went wrong because of our crawler, we are sincerely sorry for
+this inconvenience.
+Actually, Mermoz is a research project still under development and highly perfectible. 
+
+Thus, please tell us what went wrong because of Mermoz by sending a message to this address:
+**n.martin [at] qwantresearch [dot] com**
 
 ## Dependencies
 This list is more or less like a memo:
