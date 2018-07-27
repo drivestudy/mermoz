@@ -137,8 +137,10 @@ void Robots::parse_file(Robots* rbt, std::string& robotstxt)
   {
     std::getline(iss, line);
 
-    if (line[0] == '#')
-    {
+    if (line[0] == '#') {
+      /* 
+       * This is a comment
+       */
       continue;
     }
 

@@ -787,16 +787,15 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
        * So we have a relative PATH
        * We will inherit ROOT from the RHS
        */
-      if (rhs.path.back() != '/') {
+      if (!rhs.is_dir) {
         /*
-         * We verify our position with the path.
-         * If it does not finishes by a '/' we
-         * neglect all chars until last right '/'
+         * We verify that the RHS path does not refer
+         * to a driectory
          *
-         * 'sth' += '/john/doe'
-         *  = '/john/sth'
+         * 'sth' += '/john/doe' = '/john/sth'
+         *                 ^^^ to remove
          */
-        if (rhs.segments.size() > 1) {
+        if (!rhs.segments.empty()) {
           segments.insert(segments.begin(),
                           rhs.segments.begin(),
                           rhs.segments.end() - 1);
@@ -815,54 +814,61 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
 
       rel_path = false;
     } else if (!rel_path || !rhs.rel_path) {
-      /*
-       * LHS and RHS has complete path
-       * '/' += '/sth'
-       * = '/sth'
-       *
-       * RHS has a relative path
-       *
-       * '/john/doe' += 'sth'
-       * = '/john/sth'
-       */
-      if (!rel_path && !rhs.rel_path) {
-        segments.clear();
-        segments = rhs.segments;
-      } else {
-        if (path.back() != '/') {
-          /*
-           * We verify our position with the path.
-           * If it does not finishes by a '/' we
-           * neglect all chars until last right '/'
+      if (!rhs.segments.empty()) { 
+        /*
+         * We verify that the RHS is not
+         * refereing to the root
+         * directory
+         */
+        if (!rel_path && !rhs.rel_path) {
+            /* 
+             * In this case we overwrite
+             *
+             * '/sth' += '/john/doe'
+             * = '/john/doe'
+             */
+            segments.clear();
+            segments = rhs.segments;
+        } else {
+          /* RHS has a relative path
            *
            * '/john/doe' += 'sth'
-           *  = '/john/sth'
+           * = '/john/sth'
            */
-          if (!segments.empty()) {
-            segments.pop_back(); // removes segment until '/'
+          if (!is_dir) {
+            /*
+             * We verify that the RHS path does not refer
+             * to a driectory
+             *
+             * '/john/doe' += sth = '/john/sth'
+             *        ^^^ to remove
+             */
+            if (!segments.empty()) {
+              segments.pop_back(); // removes segment until '/'
+            }
           }
+
+          segments.insert(segments.end(),
+                          rhs.segments.begin(),
+                          rhs.segments.end());
         }
 
-        segments.insert(segments.end(),
-                        rhs.segments.begin(),
-                        rhs.segments.end());
+        /*
+         * Inherhit DIR properties from RHS
+         */
+        is_dir = rhs.is_dir;
+
+        /*
+         * RHS is only a relative PATH
+         * and could be made of QUERY & FRAG
+         * 'john/doe/sth?query#frag'
+         */
+        query = rhs.query;
+        arguments = rhs.arguments;
+        frag = rhs.frag;
+
+        rel_path = false;
       }
-
-      /*
-       * Inherhit DIR properties from RHS
-       */
-      is_dir = rhs.is_dir;
-
-      /*
-       * RHS is only a relative PATH
-       * and could be made of QUERY & FRAG
-       * 'john/doe/sth?query#frag'
-       */
-      query = rhs.query;
-      arguments = rhs.arguments;
-      frag = rhs.frag;
-
-      rel_path = false;
     }
 
     if (!rel_path) {
@@ -894,6 +900,11 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
     is_complete = !rel_scheme && !rel_auth && !rel_path;
   }
 
+  /*
+   * Finally we reset the saved URL
+   */
+  url = get_url();
+
   return *this;
 }
 
@@ -907,7 +918,7 @@ std::ostream& operator<<(std::ostream& os, const UrlParser& rhs)
 {
   if (rhs.is_good) {
     os << "[URLPARSER] Results for:" << std::endl;
-    os << " IN URL: " << rhs.url << std::endl << std::endl;
+    os << " URL: " << rhs.url << std::endl << std::endl;
 
     os << " SCHEME    " << rhs.scheme << std::endl << std::endl;
 
