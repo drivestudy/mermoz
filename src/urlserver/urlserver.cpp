@@ -78,11 +78,12 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       (*mem_sec) -= content.size();
 
       std::string url;
+      std::string eff_url;
       std::string text;
       std::string links;
       std::string http_status;
 
-      mc::unpack(content, {&url, &text, &links, &http_status});
+      mc::unpack(content, {&url, &eff_url, &http_status, &text, &links});
 
       std::set<std::string>::iterator it;
       if ((it = to_visit.find(url)) != to_visit.end()) {

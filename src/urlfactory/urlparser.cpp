@@ -785,7 +785,7 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
     if (rel_path && !rhs.rel_path) {
       /*
        * So we have a relative PATH
-       * We will inherit ROOT from the RHS
+       * We will inherit BASE from the RHS
        */
       if (!rhs.is_dir) {
         /*
@@ -813,62 +813,43 @@ UrlParser& UrlParser::operator+=(UrlParser& rhs)
       }
 
       rel_path = false;
-    } else if (!rel_path || !rhs.rel_path) {
-      if (!rhs.segments.empty()) { 
+    } else if (!rel_path & rhs.rel_path) {
+      /*
+        * RHS has a relative path
+        *
+        * '/john/doe' += 'sth'
+        * = '/john/sth'
+        */
+      if (!is_dir) {
         /*
-         * We verify that the RHS is not
-         * refereing to the root
-         * directory
-         */
-        if (!rel_path && !rhs.rel_path) {
-            /* 
-             * In this case we overwrite
-             *
-             * '/sth' += '/john/doe'
-             * = '/john/doe'
-             */
-            segments.clear();
-            segments = rhs.segments;
-        } else {
-          /* RHS has a relative path
-           *
-           * '/john/doe' += 'sth'
-           * = '/john/sth'
-           */
-          if (!is_dir) {
-            /*
-             * We verify that the RHS path does not refer
-             * to a driectory
-             *
-             * '/john/doe' += sth = '/john/sth'
-             *        ^^^ to remove
-             */
-            if (!segments.empty()) {
-              segments.pop_back(); // removes segment until '/'
-            }
-          }
-
-          segments.insert(segments.end(),
-                          rhs.segments.begin(),
-                          rhs.segments.end());
+          * We verify that the RHS path does not refer
+          * to a driectory
+          *
+          * '/john/doe' += sth = '/john/sth'
+          *        ^^^ to remove
+          */
+        if (!segments.empty()) {
+          segments.pop_back(); // removes segment until '/'
         }
-
-        /*
-         * Inherhit DIR properties from RHS
-         */
-        is_dir = rhs.is_dir;
-
-        /*
-         * RHS is only a relative PATH
-         * and could be made of QUERY & FRAG
-         * 'john/doe/sth?query#frag'
-         */
-        query = rhs.query;
-        arguments = rhs.arguments;
-        frag = rhs.frag;
-
-        rel_path = false;
       }
+
+      segments.insert(segments.end(),
+                      rhs.segments.begin(),
+                      rhs.segments.end());
+
+      /*
+        * Inherhit DIR properties from RHS
+        */
+      is_dir = rhs.is_dir;
+
+      /*
+        * RHS is only a relative PATH
+        * and could be made of QUERY & FRAG
+        * 'john/doe/sth?query#frag'
+        */
+      query = rhs.query;
+      arguments = rhs.arguments;
+      frag = rhs.frag;
     }
 
     if (!rel_path) {
@@ -954,7 +935,7 @@ std::ostream& operator<<(std::ostream& os, const UrlParser& rhs)
       os << "SCHEME://AUTH/PATH" << std::endl;
     }
   } else {
-    os << "[URLPARSER2] Malformed URL" << std::endl;
+    os << "[URLPARSER] Malformed URL" << std::endl;
   }
 
   return os << std::endl;

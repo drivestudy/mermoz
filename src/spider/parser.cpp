@@ -52,9 +52,10 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
     (*mem_sec) -= message.size();
 
     std::string url;
+    std::string eff_url;
     std::string content;
     std::string http_status;
-    mc::unpack(message, {&url, &content, &http_status});
+    mc::unpack(message, {&url, &eff_url, &http_status, &content});
 
     message.clear();
     long http_code = atoi(http_status.c_str());
@@ -74,15 +75,19 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
 
       std::string base;
       auto mapit = page_properties.end();
-      if ((mapit = page_properties.find("base")) != page_properties.end())
-      {
-        urlfactory::UrlParser up_loc(url);
+
+      if ((mapit = page_properties.find("base")) != page_properties.end()) {
         urlfactory::UrlParser up_base(mapit->second);
-        up_base += up_loc;
-        base = up_base.get_url();
+        if (up_base.complete()) {
+          base = up_base.get_url();
+        } else {
+          urlfactory::UrlParser up_eff(eff_url);
+          up_base += up_eff;
+          base = up_base.get_url();
+        }
+      } else {
+        base = eff_url;
       }
-      else
-        base = url;
 
       url_formating(base, raw_links, formated_urls);
       raw_links.clear();
@@ -96,14 +101,14 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
        * To remove if you need data for indexing
        */
 
-      mc::pack(message, {&url, &text, &formated_urls, &http_status});
+      mc::pack(message, {&url, &eff_url, &http_status, &text, &formated_urls});
 
       gumbo_destroy_output(&kGumboDefaultOptions, output);
     }
     else
     {
       std::string text, links;
-      mc::pack(message, {&url, &text, &links, &http_status});
+      mc::pack(message, {&url, &eff_url, &http_status, &text, &links});
     }
 
     (*mem_sec) += message.size();

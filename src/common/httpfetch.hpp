@@ -42,6 +42,7 @@ namespace common
 {
 
 long http_fetch(std::string& url,
+                std::string& eff_url,
                 std::string& content,
                 long time_out,
                 const std::string user_agent);

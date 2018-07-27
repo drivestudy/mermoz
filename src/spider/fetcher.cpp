@@ -52,17 +52,19 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
     url_queue->pop(url);
     (*mem_sec) -= url.size();
 
+    std::string eff_url;
     std::string content;
+
 #   ifdef MMZ_PROFILE
-    long http_code = mc::http_fetch(url, content, 60L, user_agent);
+    long http_code = mc::http_fetch(url, eff_url, content, 60L, user_agent);
 #   else
-    long http_code = mc::http_fetch(url, content, 10L, user_agent);
+    long http_code = mc::http_fetch(url, eff_url, content, 10L, user_agent);
 #   endif
 
     std::string http_code_string(std::to_string(http_code));
 
     std::string message;
-    mc::pack(message, {&url, &content, &http_code_string});
+    mc::pack(message, {&url, &eff_url, &http_code_string, &content});
 
     (*mem_sec) += message.size();
     content_queue->push(message);

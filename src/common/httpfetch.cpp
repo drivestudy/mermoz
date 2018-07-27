@@ -40,6 +40,7 @@ namespace common
 {
 
 long http_fetch(std::string& url,
+                std::string& eff_url,
                 std::string& content,
                 long time_out,
                 const std::string user_agent)
@@ -51,7 +52,6 @@ long http_fetch(std::string& url,
 
   url = up.get_url();
 
-  std::string eff_url;
   long res = curl_wraper(url, eff_url, content, time_out, user_agent);
 
   if (!(res >= 200 && res < 300)) {
