@@ -34,24 +34,20 @@
 
 #include "spider/spider.hpp"
 
-namespace mc = mermoz::common;
-
 namespace mermoz
 {
-namespace spider
-{
 
-void spider(mc::AsyncQueue<std::string>* url_queue,
-            mc::AsyncQueue<std::string>* content_queue,
+void spider(thread_safe::queue<std::string>* url_queue,
+            thread_safe::queue<std::string>* content_queue,
             int num_threads_fetchers,
             int num_threads_parsers,
             std::string user_agent,
             std::atomic<uint64_t>* nfetched,
             std::atomic<uint64_t>* nparsed,
-            mc::MemSec* mem_sec,
+            MemSec* mem_sec,
             bool* status)
 {
-  mc::AsyncQueue<std::string> parsed_queue;
+  thread_safe::queue<std::string> parsed_queue;
 
   std::vector<std::thread> fetchers;
   for (int i = 0; i < num_threads_fetchers; i++)

@@ -30,8 +30,6 @@
 
 namespace mermoz
 {
-namespace common
-{
 
 void pack(std::string& pack, std::initializer_list<std::string*> args)
 {
@@ -92,5 +90,4 @@ void unpack(std::string& pack, std::initializer_list<std::string*> args)
   }
 }
 
-} // namespace spider
 } // namespace mermoz

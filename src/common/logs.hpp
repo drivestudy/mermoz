@@ -38,15 +38,12 @@
 
 namespace mermoz
 {
-namespace common
-{
 
 void print_log(std::string message);
 void print_strong_log(std::string message);
 void print_warning(std::string message);
 void print_error(std::string message);
 
-} // namespace common
 } // namespace mermoz
 
 #endif // MERMOZ_LOGS_H__

@@ -36,29 +36,28 @@
 #include <queue>
 #include <thread>
 
+#include "tsafe/thread_safe_queue.h"
+
 #include "common/common.hpp"
 
 #include "urlfactory/urlfactory.hpp"
 
 namespace mermoz
 {
-namespace urlserver
-{
 
-void urlserver(mermoz::common::AsyncQueue<std::string>* inurls_queue,
-               mermoz::common::AsyncQueue<std::string>* outurls_queue,
+void urlserver(thread_safe::queue<std::string>* inurls_queue,
+               thread_safe::queue<std::string>* outurls_queue,
                std::string user_agent,
-               mermoz::common::MemSec* mem_sec,
+               MemSec* mem_sec,
                bool* status);
 
-void dispatcher(mermoz::common::AsyncQueue<std::string>* outurls_queue,
-                mermoz::common::AsyncQueue<std::string>* allowed_queue,
+void dispatcher(thread_safe::queue<std::string>* outurls_queue,
+                thread_safe::queue<std::string>* allowed_queue,
                 unsigned int num_stacks,
                 unsigned int stack_size,
                 bool* throwlist,
                 bool* status);
 
-} // namespace urlserver
 } // namespace mermoz
 
 #endif // MERMOZ_URLSERVER_H__

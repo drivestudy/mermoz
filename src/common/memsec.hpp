@@ -36,8 +36,6 @@
 
 namespace mermoz
 {
-namespace common
-{
 
 class MemSec
 {
@@ -64,7 +62,6 @@ private:
   std::condition_variable cond;
 }; // class MemSec
 
-} // namespace common
 } // namespace mermoz
 
 #endif // MERMOZ_MEMSEC_H__

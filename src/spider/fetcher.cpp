@@ -30,18 +30,14 @@
 #include <csignal>
 #include "spider/fetcher.hpp"
 
-namespace mc = mermoz::common;
-
 namespace mermoz
 {
-namespace spider
-{
 
-void fetcher(mc::AsyncQueue<std::string>* url_queue,
-             mc::AsyncQueue<std::string>* content_queue,
+void fetcher(thread_safe::queue<std::string>* url_queue,
+             thread_safe::queue<std::string>* content_queue,
              std::string user_agent,
              std::atomic<uint64_t>* nfetched,
-             mc::MemSec* mem_sec,
+             MemSec* mem_sec,
              bool* do_fetch)
 {
   std::signal(SIGPIPE, SIG_IGN);
@@ -56,15 +52,15 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
     std::string content;
 
 #   ifdef MMZ_PROFILE
-    long http_code = mc::http_fetch(url, eff_url, content, 60L, user_agent);
+    long http_code = http_fetch(url, eff_url, content, 60L, user_agent);
 #   else
-    long http_code = mc::http_fetch(url, eff_url, content, 10L, user_agent);
+    long http_code = http_fetch(url, eff_url, content, 10L, user_agent);
 #   endif
 
     std::string http_code_string(std::to_string(http_code));
 
     std::string message;
-    mc::pack(message, {&url, &eff_url, &http_code_string, &content});
+    pack(message, {&url, &eff_url, &http_code_string, &content});
 
     (*mem_sec) += message.size();
     content_queue->push(message);
@@ -73,6 +69,5 @@ void fetcher(mc::AsyncQueue<std::string>* url_queue,
   }
 }
 
-} // namespace spider
 } // namespace mermoz
 

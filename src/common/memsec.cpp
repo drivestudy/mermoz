@@ -31,8 +31,6 @@
 
 namespace mermoz
 {
-namespace common
-{
 
 MemSec& MemSec::operator+=(uint64_t mem)
 {
@@ -76,5 +74,4 @@ uint64_t MemSec::get_mem()
   return cur_mem;
 }
 
-} // namespace common
 } // namespace mermoz

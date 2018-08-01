@@ -32,17 +32,13 @@
 
 #include "spider/parser.hpp"
 
-namespace mc = mermoz::common;
-
 namespace mermoz
 {
-namespace spider
-{
 
-void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
-            mermoz::common::AsyncQueue<std::string>* parsed_queue,
+void parser(thread_safe::queue<std::string>* content_queue,
+            thread_safe::queue<std::string>* parsed_queue,
             std::atomic<uint64_t>* nparsed,
-            mermoz::common::MemSec* mem_sec,
+            MemSec* mem_sec,
             bool* status)
 {
   while (*status)
@@ -55,7 +51,7 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
     std::string eff_url;
     std::string content;
     std::string http_status;
-    mc::unpack(message, {&url, &eff_url, &http_status, &content});
+    unpack(message, {&url, &eff_url, &http_status, &content});
 
     message.clear();
     long http_code = atoi(http_status.c_str());
@@ -101,14 +97,14 @@ void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
        * To remove if you need data for indexing
        */
 
-      mc::pack(message, {&url, &eff_url, &http_status, &text, &formated_urls});
+      pack(message, {&url, &eff_url, &http_status, &text, &formated_urls});
 
       gumbo_destroy_output(&kGumboDefaultOptions, output);
     }
     else
     {
       std::string text, links;
-      mc::pack(message, {&url, &eff_url, &http_status, &text, &links});
+      pack(message, {&url, &eff_url, &http_status, &text, &links});
     }
 
     (*mem_sec) += message.size();
@@ -322,5 +318,4 @@ void url_formating(std::string& base, std::string& raw_urls, std::string& format
     formated_urls.pop_back(); // removes last \n
 }
 
-} // namespace spider
 } // namespace mermoz

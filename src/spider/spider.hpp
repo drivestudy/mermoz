@@ -30,25 +30,25 @@
 #define MERMOZ_SPIDER_H__
 
 #include <atomic>
+
+#include "tsafe/thread_safe_queue.h"
+
 #include "spider/fetcher.hpp"
 #include "spider/parser.hpp"
 
 namespace mermoz
 {
-namespace spider
-{
 
-void spider(mermoz::common::AsyncQueue<std::string>* content_queue,
-            mermoz::common::AsyncQueue<std::string>* url_queue,
+void spider(thread_safe::queue<std::string>* content_queue,
+            thread_safe::queue<std::string>* url_queue,
             int num_threads_fetchers,
             int num_threads_parsers,
             std::string user_agent,
             std::atomic<uint64_t>* nfetched,
             std::atomic<uint64_t>* nparsed,
-            mermoz::common::MemSec* mem_sec,
+            MemSec* mem_sec,
             bool* status);
 
-} // namespace spider
 } // namespace mermoz
 
 #endif // MERMOZ_SPIDER_H__

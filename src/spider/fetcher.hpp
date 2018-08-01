@@ -39,21 +39,19 @@
 
 #include <curl/curl.h>
 
+#include "tsafe/thread_safe_queue.h"
 #include "common/common.hpp"
 
 namespace mermoz
 {
-namespace spider
-{
 
-void fetcher(mermoz::common::AsyncQueue<std::string>* url_queue,
-             mermoz::common::AsyncQueue<std::string>* content_queue,
+void fetcher(thread_safe::queue<std::string>* url_queue,
+             thread_safe::queue<std::string>* content_queue,
              std::string user_agent,
              std::atomic<uint64_t>* nfetched,
-             mermoz::common::MemSec* mem_sec,
+             MemSec* mem_sec,
              bool* do_fetch);
 
-} // namespace spider
 } // namespace mermoz
 
 #endif // MERMOZ_FETCHER_H__

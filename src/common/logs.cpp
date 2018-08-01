@@ -30,8 +30,6 @@
 
 namespace mermoz
 {
-namespace common
-{
 
 void print_log(std::string message)
 {
@@ -65,5 +63,4 @@ void print_error(std::string message)
   std::cout << "\033[1;31m [" << std::put_time(&tm, "%T") << "] [MERMOZ] -\033[0m \033[91m" << message << "\033[0m" << std::endl;
 }
 
-} // namespace common
 } // namespace mermoz

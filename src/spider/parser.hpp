@@ -44,18 +44,17 @@
 
 #include "gumbo.h"
 #include "urlfactory/urlfactory.hpp"
+#include "tsafe/thread_safe_queue.h"
 
 #include "common/common.hpp"
 
 namespace mermoz
 {
-namespace spider
-{
 
-void parser(mermoz::common::AsyncQueue<std::string>* content_queue,
-            mermoz::common::AsyncQueue<std::string>* parsed_queue,
+void parser(thread_safe::queue<std::string>* content_queue,
+            thread_safe::queue<std::string>* parsed_queue,
             std::atomic<uint64_t>* nparsed,
-            mermoz::common::MemSec* mem_sec,
+            MemSec* mem_sec,
             bool* status);
 
 std::map<std::string, std::string> get_page_properties(GumboNode* node);
@@ -68,7 +67,6 @@ void text_cleaner(std::string& s);
 
 void url_formating(std::string& rool_url, std::string& raw_urls, std::string& formated_urls);
 
-} // namespace spider
 } // namespace mermoz
 
 #endif // MERMOZ_PARSER_H__

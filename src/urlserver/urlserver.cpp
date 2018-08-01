@@ -32,17 +32,13 @@
 #include <ctime>
 #include <csignal>
 
-namespace mc = mermoz::common;
-
 namespace mermoz
 {
-namespace urlserver
-{
 
-void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
-               mermoz::common::AsyncQueue<std::string>* url_queue,
+void urlserver(thread_safe::queue<std::string>* content_queue,
+               thread_safe::queue<std::string>* url_queue,
                std::string user_agent,
-               mc::MemSec* mem_sec,
+               MemSec* mem_sec,
                bool* status)
 {
   std::signal(SIGPIPE, SIG_IGN);
@@ -83,7 +79,7 @@ void urlserver(mermoz::common::AsyncQueue<std::string>* content_queue,
       std::string links;
       std::string http_status;
 
-      mc::unpack(content, {&url, &eff_url, &http_status, &text, &links});
+      unpack(content, {&url, &eff_url, &http_status, &text, &links});
 
       std::set<std::string>::iterator it;
       if ((it = to_visit.find(url)) != to_visit.end()) {
@@ -187,5 +183,4 @@ void dispatcher(mermoz::common::AsyncQueue<std::string>* outurls_queue,
   }
 }
 
-} // namespace urlserver
 } // namespace mermoz

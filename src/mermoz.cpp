@@ -44,14 +44,13 @@
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+#include "tsafe/thread_safe_queue.h"
+
 #include "common/common.hpp"
-namespace mc = mermoz::common;
-
 #include "spider/spider.hpp"
-namespace ms = mermoz::spider;
-
 #include "urlserver/urlserver.hpp"
-namespace mu = mermoz::urlserver;
+
+using namespace mermoz;
 
 int main (int argc, char** argv)
 {
@@ -78,7 +77,7 @@ int main (int argc, char** argv)
 
   bool status = true;
 
-  mc::AsyncQueue<std::string> url_queue;
+  thread_safe::queue<std::string> url_queue;
 
   size_t pos;
   std::string line;
@@ -109,36 +108,36 @@ int main (int argc, char** argv)
   }
   settingsfile.close();
 
-  if (user_agent.empty()
-      || nfetchers == 0
-      || nparsers == 0
-      || max_ram == 0)
+  if (user_agent.empty() ||
+      nfetchers == 0 ||
+      nparsers == 0 ||
+      max_ram == 0)
   {
-    mc::print_error("Wrong settings Mermoz cannot start");
+    print_error("Wrong settings Mermoz cannot start");
   }
   else
   {
-    mc::print_strong_log("Staring of Mermoz with following settings:");
+    print_strong_log("Staring of Mermoz with following settings:");
 
     std::ostringstream oss;
 
     oss << "Fetchers: " << nfetchers;
-    mc::print_strong_log(oss.str());
+    print_strong_log(oss.str());
 
     oss.str("");
     oss << "Parsers: " << nparsers;
-    mc::print_strong_log(oss.str());
+    print_strong_log(oss.str());
 
     oss.str("");
     oss << "User-agent: " << user_agent;
-    mc::print_strong_log(oss.str());
+    print_strong_log(oss.str());
 
     oss.str("");
     oss << "Max-ram (GB): " << max_ram;
-    mc::print_strong_log(oss.str());
+    print_strong_log(oss.str());
   }
 
-  mc::MemSec mem_sec(max_ram * mc::MemSec::GB);
+  MemSec mem_sec(max_ram * MemSec::GB);
 
   std::string link;
   std::ifstream seedfile(vmap["seeds"].as<std::string>());
@@ -154,12 +153,12 @@ int main (int argc, char** argv)
   }
   seedfile.close();
 
-  mc::AsyncQueue<std::string> content_queue;
+  thread_safe::queue<std::string> content_queue;
 
   /* Must initialize libcurl before any threads are started */
   curl_global_init(CURL_GLOBAL_ALL);
 
-  std::thread urlserver(mu::urlserver,
+  std::thread urlserver(urlserver,
                         &content_queue,
                         &url_queue,
                         user_agent,
@@ -172,7 +171,7 @@ int main (int argc, char** argv)
   std::atomic<uint64_t> nparsed;
   nparsed = 0;
 
-  std::thread spider(ms::spider,
+  std::thread spider(spider,
                      &url_queue,
                      &content_queue,
                      nfetchers,

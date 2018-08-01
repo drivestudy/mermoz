@@ -38,8 +38,6 @@
 
 namespace mermoz
 {
-namespace common
-{
 
 long http_fetch(std::string& url,
                 std::string& eff_url,
@@ -58,7 +56,6 @@ size_t write_function (char* ptr,
                        size_t nmemb,
                        void* userdata);
 
-} // namespace common
 } // namespace mermoz
 
 #endif // MERMOZ_HTTPFETCH_H__
