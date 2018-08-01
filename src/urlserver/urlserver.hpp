@@ -42,21 +42,24 @@
 
 #include "urlfactory/urlfactory.hpp"
 
+using TSQueueVector = std::vector<thread_safe::queue<std::string>>;
+
 namespace mermoz
 {
 
-void urlserver(thread_safe::queue<std::string>* inurls_queue,
-               thread_safe::queue<std::string>* outurls_queue,
-               std::string user_agent,
-               MemSec* mem_sec,
-               bool* status);
+typedef struct UrlServerSettings {
+  std::string user_agent;
+  MemSec* mem_sec;
+} UrlServerSettings;
 
-void dispatcher(thread_safe::queue<std::string>* outurls_queue,
+void urlserver(bool* status,
+               UrlServerSettings* usets,
+               TSQueueVector* content_queues,
+               TSQueueVector* url_queues);
+
+void dispatcher(bool* status,
                 thread_safe::queue<std::string>* allowed_queue,
-                unsigned int num_stacks,
-                unsigned int stack_size,
-                bool* throwlist,
-                bool* status);
+                TSQueueVector* url_queues);
 
 } // namespace mermoz
 

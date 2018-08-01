@@ -36,18 +36,29 @@
 #include "spider/fetcher.hpp"
 #include "spider/parser.hpp"
 
+using TSQueueVector = std::vector<thread_safe::queue<std::string>>;
+
 namespace mermoz
 {
 
-void spider(thread_safe::queue<std::string>* content_queue,
-            thread_safe::queue<std::string>* url_queue,
-            int num_threads_fetchers,
-            int num_threads_parsers,
-            std::string user_agent,
-            std::atomic<uint64_t>* nfetched,
-            std::atomic<uint64_t>* nparsed,
-            MemSec* mem_sec,
-            bool* status);
+typedef struct SpiderSettings {
+  unsigned int num_threads_fetchers;
+  unsigned int num_threads_parsers;
+  std::string user_agent;
+  std::atomic<uint64_t>* nfetched;
+  std::atomic<uint64_t>* nparsed;
+  MemSec* mem_sec;
+} SpiderSettings;
+
+
+/*
+ * General header definition of
+ * the spider thread function
+ */
+void spider(bool* status, // defines if thread runs or not
+            SpiderSettings* sset, // general settings
+            TSQueueVector* url_queues, // incomming data
+            TSQueueVector* content_queues); // outcomming data
 
 } // namespace mermoz
 

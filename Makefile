@@ -4,7 +4,7 @@ OPT = -std=c++14 -Wall -O3 -pthread
 #OPT = -std=c++14 -Wall -g -pthread
 
 INC = -I src/. -I src/urlfactory/src/.
-LIB = -lgumbo -lboost_program_options -lcurl
+LIB = -lgumbo -lcurl -lboost_thread -lboost_program_options -lboost_system
 
 #PROF = -DMMZ_PROFILE
 VERB = -DMMZ_VERBOSE

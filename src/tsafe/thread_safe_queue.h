@@ -39,7 +39,7 @@ public:
     void push( const T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.push( u ); }
 
     void pop( void ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.pop(); }
-    void pop( T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); u = std::copy(storage.front()); storage.pop(); }
+    void pop( T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); u = storage.front(); storage.pop(); }
 private:
     std::queue<T, Container> storage;
     mutable boost::mutex mutex;

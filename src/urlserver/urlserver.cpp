@@ -35,11 +35,10 @@
 namespace mermoz
 {
 
-void urlserver(thread_safe::queue<std::string>* content_queue,
-               thread_safe::queue<std::string>* url_queue,
-               std::string user_agent,
-               MemSec* mem_sec,
-               bool* status)
+void urlserver(bool* status,
+               UrlServerSettings* usets,
+               TSQueueVector* content_queues,
+               TSQueueVector* url_queues)
 {
   std::signal(SIGPIPE, SIG_IGN);
 
@@ -51,27 +50,22 @@ void urlserver(thread_safe::queue<std::string>* content_queue,
   std::queue<std::string> robots_queue;
   const size_t robots_limit {100000};
 
-  mermoz::common::AsyncQueue<std::string> allowed_queue;
-  bool throwlist {false};
+  thread_safe::queue<std::string> allowed_queue;
 
   std::thread t(dispatcher,
-                url_queue,
+                status,
                 &allowed_queue,
-                100U, // number stacks
-                50U, // stack size
-                &throwlist,
-                status);
+                url_queues);
   t.detach();
 
+  unsigned int parser_id {0};
+
   while (*status) {
-    std::string content;
-    bool res = content_queue->pop_for(content, 1000);
+    if (!content_queues->at(parser_id).empty()) {
+      std::string content;
+      content_queues->at(parser_id).pop(content);
 
-    // Very important verification todo !
-    throwlist = !res && allowed_queue.empty();
-
-    if (!content.empty() && res) {
-      (*mem_sec) -= content.size();
+      (*usets->mem_sec) -= content.size();
 
       std::string url;
       std::string eff_url;
@@ -84,10 +78,10 @@ void urlserver(thread_safe::queue<std::string>* content_queue,
       std::set<std::string>::iterator it;
       if ((it = to_visit.find(url)) != to_visit.end()) {
         to_visit.erase(it);
-        (*mem_sec) -= url.size();
+        (*usets->mem_sec) -= url.size();
       }
 
-      (*mem_sec) += url.size();
+      (*usets->mem_sec) += url.size();
       visited.insert(url);
 
       std::string link;
@@ -100,17 +94,21 @@ void urlserver(thread_safe::queue<std::string>* content_queue,
           if (visited.find(link) == visited.end()
               && to_visit.find(link) == to_visit.end()
               && parsed_urls.find(link) == parsed_urls.end()) {
-            (*mem_sec) += link.size();
+            (*usets->mem_sec) += link.size();
             parsed_urls.insert(link);
           }
         }
       }
     }
 
+    parser_id++;
+    if (parser_id >= content_queues->size()) {
+      parser_id = 0;
+    }
+
     // dispatching tasks
     for(auto purlit = parsed_urls.begin();
-        purlit != parsed_urls.end();
-       ) {
+        purlit != parsed_urls.end();) {
       urlfactory::UrlParser up(*purlit);
 
       std::map<std::string, urlfactory::Robots>::iterator mapit;
@@ -122,8 +120,13 @@ void urlserver(thread_safe::queue<std::string>* content_queue,
         }
 
         robots.emplace(up.get_host(),
-                       urlfactory::Robots(up.get_url(true, true, false, false, false), "Qwantify", user_agent));
+                       urlfactory::Robots(up.get_url(true, true, false, false, false),
+                                          "Qwantify",
+                                          usets->user_agent)
+                      );
+
         robots[up.get_host()].async_init();
+
         robots_queue.push(up.get_host());
 
         purlit++;
@@ -131,13 +134,13 @@ void urlserver(thread_safe::queue<std::string>* content_queue,
         if (mapit->second.good()) {
           if (mapit->second.is_allowed(up)
               && to_visit.find(*purlit) == to_visit.end()) {
-            (*mem_sec) += 2*purlit->size();
+            (*usets->mem_sec) += 2*purlit->size();
 
             allowed_queue.push(*purlit);
             to_visit.insert(*purlit);
           }
 
-          (*mem_sec) -= purlit->size();
+          (*usets->mem_sec) -= purlit->size();
           purlit = parsed_urls.erase(purlit);
         } else {
           purlit++;
@@ -147,39 +150,23 @@ void urlserver(thread_safe::queue<std::string>* content_queue,
   } // while (*status)
 }
 
-void dispatcher(mermoz::common::AsyncQueue<std::string>* outurls_queue,
-                mermoz::common::AsyncQueue<std::string>* allowed_queue,
-                unsigned int num_stacks,
-                unsigned int stack_size,
-                bool* throwlist,
-                bool* status)
+void dispatcher(bool* status,
+                thread_safe::queue<std::string>* allowed_queue,
+                TSQueueVector* url_queues)
 {
-  unsigned int stack_id {0};
-  std::vector<std::queue<std::string>> stacks(num_stacks);
+  unsigned int fetcher_id {0};
 
   while (*status) {
-    std::string url;
-    bool res = allowed_queue->pop_for(url, 100);
-
-    if (res) {
-      stacks[stack_id].push(url);
-
-      if (stacks[stack_id].size() >= stack_size) {
-        while (!stacks[stack_id].empty()) {
-          outurls_queue->push(stacks[stack_id].front());
-          stacks[stack_id].pop();
-        }
-      }
-    } else if (*throwlist) {
-      for (unsigned int sid = 0; sid < num_stacks; sid++) {
-        while (!stacks[sid].empty()) {
-          outurls_queue->push(stacks[sid].front());
-          stacks[sid].pop();
-        }
-      }
+    if (!allowed_queue->empty()) {
+      std::string url;
+      allowed_queue->pop(url);
+      url_queues->at(fetcher_id).push(url);
     }
 
-    stack_id+1 >= num_stacks ? stack_id = 0 : stack_id++;
+    fetcher_id++;
+    if (fetcher_id >= url_queues->size()) {
+      fetcher_id = 0;
+    }
   }
 }
 

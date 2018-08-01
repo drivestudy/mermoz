@@ -29,4 +29,6 @@
 #ifndef MERMOZ_H__
 #define MERMOZ_H__
 
+using TSQueueVector = std::vector<thread_safe::queue<std::string>>;
+
 #endif // MERMOZ_H__

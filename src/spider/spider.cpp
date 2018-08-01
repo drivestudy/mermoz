@@ -37,25 +37,47 @@
 namespace mermoz
 {
 
-void spider(thread_safe::queue<std::string>* url_queue,
-            thread_safe::queue<std::string>* content_queue,
-            int num_threads_fetchers,
-            int num_threads_parsers,
-            std::string user_agent,
-            std::atomic<uint64_t>* nfetched,
-            std::atomic<uint64_t>* nparsed,
-            MemSec* mem_sec,
-            bool* status)
+void spider(bool* status, // defines if thread runs or not
+            SpiderSettings* ssets, // general settings
+            TSQueueVector* url_queues, // incomming data
+            TSQueueVector* content_queues) // outcomming data
 {
-  thread_safe::queue<std::string> parsed_queue;
-
+  TSQueueVector out_fetch(ssets->num_threads_fetchers);
   std::vector<std::thread> fetchers;
-  for (int i = 0; i < num_threads_fetchers; i++)
-    fetchers.push_back(std::thread(fetcher, url_queue, &parsed_queue, user_agent, nfetched, mem_sec, status));
 
+  for (unsigned int f_id = 0; f_id < ssets->num_threads_fetchers; f_id++) {
+    fetchers.push_back(std::thread(fetcher, &url_queues->at(f_id), &out_fetch.at(f_id), ssets->user_agent, ssets->nfetched, ssets->mem_sec, status));
+  }
+
+  TSQueueVector in_parse(ssets->num_threads_parsers);
   std::vector<std::thread> parsers;
-  for (int i = 0; i < num_threads_parsers; i++)
-    parsers.push_back(std::thread(parser, &parsed_queue, content_queue, nparsed, mem_sec, status));
+
+  for (unsigned int p_id = 0; p_id < ssets->num_threads_parsers; p_id++) {
+    parsers.push_back(std::thread(parser, &in_parse.at(p_id), &content_queues->at(p_id), ssets->nparsed, ssets->mem_sec, status));
+  }
+
+  /*
+   * Funnel function
+   */
+  unsigned int fetcher_id {0};
+  unsigned int parser_id {0};
+  while (*status) {
+    if (!out_fetch.at(fetcher_id).empty()) {
+      std::string tmp;
+      out_fetch.at(fetcher_id).pop(tmp);
+      in_parse.at(parser_id).push(tmp);
+
+      parser_id++;
+      if (parser_id >= ssets->num_threads_parsers) {
+        parser_id = 0;
+      }
+    }
+
+    fetcher_id++;
+    if (fetcher_id >= ssets->num_threads_fetchers) {
+      fetcher_id = 0;
+    }
+  }
 
   for (auto& t : fetchers)
     t.join();
@@ -64,5 +86,4 @@ void spider(thread_safe::queue<std::string>* url_queue,
     t.join();
 }
 
-} // namespace spider
 } // namespace mermoz

@@ -85,12 +85,12 @@ public:
     void push_back( const T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.push_back( u ); }
 
     void pop_back( void ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.pop_back(); }
-    void pop_back( T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); u = std::copy(storage.back()); storage.pop_back(); }
+    void pop_back( T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); u = storage.back(); storage.pop_back(); }
 
     void push_front( const T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.push_front( u ); }
 
     void pop_front( void ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.pop_front(); }
-    void pop_front( T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); u = std::copy(storage.front()); storage.pop_front(); }
+    void pop_front( T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); u = storage.front(); storage.pop_front(); }
 
     iterator insert( iterator pos, const T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); return storage.insert( pos, u ); }
     void insert( iterator pos, size_type n, const T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.insert( pos, n, u ); }

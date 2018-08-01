@@ -60,7 +60,8 @@ This list is more or less like a memo:
   URLs and `robots.txt`.
 - [`curl`](https://github.com/curl/curl) fetch pages,
 - [`gumbo`](https://github.com/google/gumbo-parser) fast and reliable HTML5 parser,
-- [`boost/program_options`](https://www.boost.org/doc/libs/1_67_0/doc/html/program_options.html) basics,
+- [`boost/thread`](https://www.boost.org/doc/libs/1_64_0/doc/html/thread.html) threading lib,
+- [`boost/program_options`](https://www.boost.org/doc/libs/1_67_0/doc/html/program_options.html) basics.
 
 ## Contributing
 Please first read [`CONTRIBUTING.md`](CONTRIBUTING.md) and propose what you want or you can fix or add functionalities detailed

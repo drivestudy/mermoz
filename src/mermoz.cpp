@@ -58,6 +58,9 @@ int main (int argc, char** argv)
   HeapProfilerStart("mmz");
 # endif
 
+  /*
+   * Defining options for code
+   */
   po::options_description desc("Allowed options");
   desc.add_options()
   ("help", "displays this message")
@@ -69,27 +72,27 @@ int main (int argc, char** argv)
   po::store(po::parse_command_line(argc, argv, desc), vmap);
   po::notify(vmap);
 
-  if (vmap.count("help"))
-  {
+  /*
+   * If one asks '--help'
+   */
+  if (vmap.count("help")) {
     std::cout << desc << std::endl;
     return 1;
   }
 
-  bool status = true;
-
-  thread_safe::queue<std::string> url_queue;
-
+  /*
+   * Parsing the 'settings' file
+   */
   size_t pos;
   std::string line;
   std::ifstream settingsfile(vmap["settings"].as<std::string>());
 
   std::string user_agent;
-  int nfetchers {0};
-  int nparsers {0};
+  unsigned int nfetchers {0};
+  unsigned int nparsers {0};
   int max_ram {0};
 
-  while(!settingsfile.eof())
-  {
+  while(!settingsfile.eof()) {
     line.clear();
     std::getline(settingsfile, line);
 
@@ -98,9 +101,9 @@ int main (int argc, char** argv)
       line.pop_back();
 
     if ((pos = line.find("fetchers")) != std::string::npos)
-      nfetchers = std::atoi(line.substr(pos + 9).c_str());
+      nfetchers = static_cast<unsigned int>(std::atoi(line.substr(pos + 9).c_str()));
     else if ((pos = line.find("parsers")) != std::string::npos)
-      nparsers = std::atoi(line.substr(pos + 8).c_str());
+      nparsers = static_cast<unsigned int>(std::atoi(line.substr(pos + 8).c_str()));
     else if ((pos = line.find("user-agent")) != std::string::npos)
       user_agent = line.substr(pos + 11);
     else if ((pos = line.find("max-ram")) != std::string::npos)
@@ -108,15 +111,16 @@ int main (int argc, char** argv)
   }
   settingsfile.close();
 
+  /*
+   * One verifies that all the mandatory settings
+   * where included
+   */
   if (user_agent.empty() ||
       nfetchers == 0 ||
       nparsers == 0 ||
-      max_ram == 0)
-  {
+      max_ram == 0) {
     print_error("Wrong settings Mermoz cannot start");
-  }
-  else
-  {
+  } else {
     print_strong_log("Staring of Mermoz with following settings:");
 
     std::ostringstream oss;
@@ -137,33 +141,46 @@ int main (int argc, char** argv)
     print_strong_log(oss.str());
   }
 
+  bool status = true;
+
+  TSQueueVector url_queues(nfetchers);
+  TSQueueVector content_queues(nparsers);
   MemSec mem_sec(max_ram * MemSec::GB);
 
+  unsigned int queue_id {0};
   std::string link;
   std::ifstream seedfile(vmap["seeds"].as<std::string>());
-  while (!seedfile.eof())
-  {
+  while (!seedfile.eof()) {
     link = {""};
     seedfile >> link;
-    if (!link.empty())
-    {
-      url_queue.push(link);
+    if (!link.empty()) {
+      url_queues[queue_id].push(link);
       mem_sec += link.size();
+      queue_id++;
+
+      if (queue_id >= url_queues.size()) {
+        queue_id = 0;
+      }
     }
   }
   seedfile.close();
 
-  thread_safe::queue<std::string> content_queue;
-
   /* Must initialize libcurl before any threads are started */
   curl_global_init(CURL_GLOBAL_ALL);
 
-  std::thread urlserver(urlserver,
-                        &content_queue,
-                        &url_queue,
-                        user_agent,
-                        &mem_sec,
-                        &status);
+  /*
+   * Settings for the UrlServer
+   */
+  UrlServerSettings uset = {
+    user_agent,
+    &mem_sec
+  };
+
+  std::thread userv(urlserver,
+                    &status,
+                    &uset,
+                    &content_queues,
+                    &url_queues);
 
   std::atomic<uint64_t> nfetched;
   nfetched = 0;
@@ -171,30 +188,36 @@ int main (int argc, char** argv)
   std::atomic<uint64_t> nparsed;
   nparsed = 0;
 
-  std::thread spider(spider,
-                     &url_queue,
-                     &content_queue,
-                     nfetchers,
-                     nparsers,
-                     user_agent,
-                     &nfetched,
-                     &nparsed,
-                     &mem_sec,
-                     &status);
+  /*
+   * Settings for the Spider
+   */
+  SpiderSettings sset = {
+    nfetchers,
+    nparsers,
+    user_agent,
+    &nfetched,
+    &nparsed,
+    &mem_sec,
+  };
+
+  std::thread spdr(spider,
+                   &status,
+                   &sset,
+                   &url_queues,
+                   &content_queues);
 
   std::ofstream ofp("log.out");
-  
+
   ofp << "# time urls contents fetched parsed mem(MB)" << std::endl;
 
-  while (status)
-  {
+  while (status) {
     sleep(2);
     std::time_t t = std::time(nullptr);
     std::tm tm = *std::localtime(&t);
 
     ofp << tm.tm_hour*3600 + tm.tm_min*60 + tm.tm_sec << " ";
-    ofp << url_queue.size() << " ";
-    ofp << content_queue.size() << " ";
+    ofp << url_queues.size() << " ";
+    ofp << content_queues.size() << " ";
     ofp << nfetched << " ";
     ofp << nparsed << " ";
     ofp << mem_sec.get_mem()/(1UL << 20) << std::endl;
@@ -204,8 +227,8 @@ int main (int argc, char** argv)
   HeapProfilerStop();
 # endif
 
-  urlserver.join();
-  spider.join();
+  userv.join();
+  spdr.join();
 
   return 0;
 }
