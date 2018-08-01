@@ -36,13 +36,29 @@ public:
     T & front( void ) { boost::lock_guard<boost::mutex> lock( mutex ); return storage.front(); }
     const T & front( void ) const { boost::lock_guard<boost::mutex> lock( mutex ); return storage.front(); }
 
-    void push( const T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.push( u ); }
+    void push( const T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.push( u ); cond.notify_one(); }
 
-    void pop( void ) { boost::lock_guard<boost::mutex> lock( mutex ); storage.pop(); }
-    void pop( T & u ) { boost::lock_guard<boost::mutex> lock( mutex ); u = storage.front(); storage.pop(); }
+    void pop( void )
+    {
+      boost::unique_lock<boost::mutex> lock( mutex );
+      while (storage.empty())
+        cond.wait(lock);
+      storage.pop();
+    }
+
+    void pop( T & u )
+    {
+      boost::unique_lock<boost::mutex> lock( mutex );
+      while (storage.empty())
+        cond.wait(lock);
+      u = storage.front(); 
+      storage.pop();
+    }
+
 private:
     std::queue<T, Container> storage;
     mutable boost::mutex mutex;
+    boost::condition_variable cond;
 };
 
 template < class T, class Container = std::vector<T>, class Compare = std::less<typename Container::value_type> >

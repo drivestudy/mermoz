@@ -44,9 +44,6 @@ void fetcher(thread_safe::queue<std::string>* url_queue,
 
   while (*do_fetch)
   {
-    if (url_queue->empty())
-      continue;
-
     std::string url;
     url_queue->pop(url);
     (*mem_sec) -= url.size();
