@@ -31,6 +31,8 @@
 #include <curl/curl.h>
 #include <ctime>
 #include <csignal>
+#include <list>
+#include <map>
 
 namespace mermoz
 {
@@ -154,18 +156,113 @@ void dispatcher(bool* status,
                 thread_safe::queue<std::string>* allowed_queue,
                 TSQueueVector* url_queues)
 {
+  std::list<std::string> wait_list;
+
+  std::map<std::string, std::pair<unsigned int, unsigned int>> history_map;
+  std::queue<std::string> history_order;
+
+  const unsigned int num_fetchers {url_queues->size()};
+  const unsigned int max_fetch_per_site {10};
   unsigned int fetcher_id {0};
+  unsigned int num_sent {0};
+
+  auto hmapit = history_map.begin();
 
   while (*status) {
+    if (num_sent%num_fetchers == 0) {
+      for (hmapit = history_map.begin(); hmapit != history_map.end(); hmapit++) {
+        if (num_sent - hmapit->second.first > num_fetchers) {
+          // this means that more than 200 request where sent
+          // while the last call, so we set it to zero
+          hmapit->second.second = 0U;
+        }
+      }
+
+      for (auto wit = wait_list.begin(); wit != wait_list.end();) {
+        urlfactory::UrlParser up(*wit);
+
+        if ((hmapit = history_map.find(up.get_host())) != history_map.end()) {
+          // the domain was found in the history
+          if (hmapit->second.second < max_fetch_per_site) {
+            // We are under the limit, ok to send it
+            url_queues->at(fetcher_id).push(*wit);
+
+            fetcher_id++;
+            if (fetcher_id >= num_fetchers) {
+              fetcher_id = 0;
+            }
+
+            wit = wait_list.erase(wit);
+
+            hmapit->second.first = num_sent;
+            num_sent++;
+
+            hmapit->second.second++;
+          } else {
+            // to many request, wait
+            wit++;
+          }
+        } else {
+          // the domain was not found in the history
+          if (history_order.size() > num_fetchers) {
+            // the memory does not need to be greater 
+            // than the number of fetchers !
+            history_map.erase(history_order.front());
+            history_order.pop();
+          }
+          history_map.emplace(up.get_host(), std::pair<unsigned int, unsigned int>(num_sent, 1U));
+          url_queues->at(fetcher_id).push(*wit);
+
+          wit = wait_list.erase(wit);
+
+          fetcher_id++;
+          if (fetcher_id >=  num_fetchers) {
+            fetcher_id = 0;
+          }
+        }
+      }
+    }
+
     if (!allowed_queue->empty()) {
       std::string url;
       allowed_queue->pop(url);
-      url_queues->at(fetcher_id).push(url);
-    }
+      urlfactory::UrlParser up(url);
 
-    fetcher_id++;
-    if (fetcher_id >= url_queues->size()) {
-      fetcher_id = 0;
+      if ((hmapit = history_map.find(up.get_host())) != history_map.end()) {
+        // the domain was found in the history
+        if (hmapit->second.second < max_fetch_per_site) {
+          // We are under the limit, ok to send it
+          url_queues->at(fetcher_id).push(url);
+
+          fetcher_id++;
+          if (fetcher_id >=  num_fetchers) {
+            fetcher_id = 0;
+          }
+
+          hmapit->second.first = num_sent;
+          num_sent++;
+
+          hmapit->second.second++;
+        } else {
+          // to many request, wait
+          wait_list.push_back(url);
+        }
+      } else {
+        // the domain was not found in the history
+        if (history_order.size() > num_fetchers) {
+          // the memory does not need to be greater 
+          // than the number of fetchers !
+          history_map.erase(history_order.front());
+          history_order.pop();
+        }
+        history_map.emplace(up.get_host(), std::pair<unsigned int, unsigned int>(num_sent, 1U));
+        url_queues->at(fetcher_id).push(url);
+
+        fetcher_id++;
+        if (fetcher_id >=  num_fetchers) {
+          fetcher_id = 0;
+        }
+      }
     }
   }
 }
