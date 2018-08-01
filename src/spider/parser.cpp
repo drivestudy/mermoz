@@ -43,6 +43,9 @@ void parser(thread_safe::queue<std::string>* content_queue,
 {
   while (*status)
   {
+    if (content_queue->empty())
+      continue;
+
     std::string message;
     content_queue->pop(message);
     (*mem_sec) -= message.size();
