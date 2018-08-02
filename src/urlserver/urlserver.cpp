@@ -159,7 +159,7 @@ void dispatcher(bool* status,
   std::map<std::string, std::pair<unsigned int, unsigned int>> history_map;
   std::queue<std::string> history_order;
 
-  const unsigned int num_fetchers {url_queues->size()};
+  const unsigned long num_fetchers {url_queues->size()};
   const unsigned int max_fetch_per_site {10};
   unsigned int fetcher_id {0};
   unsigned int num_sent {0};

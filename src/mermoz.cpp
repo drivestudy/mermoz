@@ -211,13 +211,23 @@ int main (int argc, char** argv)
   ofp << "# time urls contents fetched parsed mem(MB)" << std::endl;
 
   while (status) {
-    sleep(2);
+    sleep(10);
     std::time_t t = std::time(nullptr);
     std::tm tm = *std::localtime(&t);
 
+    unsigned long wait_url {0};
+    for (auto& queue : url_queues) {
+      wait_url += queue.size();
+    }
+
+    unsigned long wait_content {0};
+    for (auto& queue : content_queues) {
+      wait_content += queue.size();
+    }
+
     ofp << tm.tm_hour*3600 + tm.tm_min*60 + tm.tm_sec << " ";
-    ofp << url_queues.size() << " ";
-    ofp << content_queues.size() << " ";
+    ofp << wait_url << " ";
+    ofp << wait_content << " ";
     ofp << nfetched << " ";
     ofp << nparsed << " ";
     ofp << mem_sec.get_mem()/(1UL << 20) << std::endl;
