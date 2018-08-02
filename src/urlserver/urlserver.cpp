@@ -86,6 +86,14 @@ void urlserver(bool* status,
       (*usets->mem_sec) += url.size();
       visited.insert(url);
 
+      if (url.compare(eff_url) != 0) {
+        /*
+         * One considers that URLs differs (redirection)
+         * and this must be saved
+         */
+        visited.insert(eff_url);
+      }
+
       std::string link;
       std::istringstream iss(links);
 
