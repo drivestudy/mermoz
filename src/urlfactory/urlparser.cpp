@@ -1070,9 +1070,10 @@ bool UrlParser::operator>=(UrlParser& rhs)
       /*
        * Great, some terms are remaning within LHS
        */
-      if (lhs_url[lhs_pos - 1] == '/'
-          || lhs_url[lhs_pos] == '/'
-          || lhs_url[lhs_pos] == '?') {
+      if (lhs_url[lhs_pos - 1] == '/' ||
+          lhs_url[lhs_pos] == '/' ||
+          lhs_url[lhs_pos - 1] == '?' ||
+          lhs_url[lhs_pos] == '?') {
         /*
          * One found separator:
          * - '/p' > 'p'
@@ -1162,9 +1163,10 @@ bool UrlParser::operator>(UrlParser& rhs)
       /*
        * Great, some terms are remaning within LHS
        */
-      if (lhs_url[lhs_pos - 1] == '/'
-          || lhs_url[lhs_pos] == '/'
-          || lhs_url[lhs_pos] == '?') {
+      if (lhs_url[lhs_pos - 1] == '/' ||
+          lhs_url[lhs_pos] == '/' ||  
+          lhs_url[lhs_pos - 1] == '?' ||
+          lhs_url[lhs_pos] == '?') {
         /*
          * One found separator:
          * - '/p' > 'p'
