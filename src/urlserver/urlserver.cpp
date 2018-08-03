@@ -144,9 +144,15 @@ void urlserver(bool* status,
         if (mapit->second.good()) {
           if (mapit->second.is_allowed(up)
               && to_visit.find(*purlit) == to_visit.end()) {
-            (*usets->mem_sec) += 2*purlit->size();
 
-            allowed_queue.push(*purlit);
+            std::string content;
+            std::string host {up.get_host()};
+            std::string url {*purlit};
+            pack(content, {&host, &url});
+            (*usets->mem_sec) += content.size();
+            allowed_queue.push(content);
+
+            (*usets->mem_sec) += purlit->size();
             to_visit.insert(*purlit);
           }
 
@@ -172,7 +178,7 @@ void dispatcher(bool* status,
   unsigned int fetcher_id {0};
   unsigned int num_sent {0};
 
-  auto hmapit = history_map.begin();
+  auto hmapit = history_map.end();
 
   while (*status) {
     if (num_sent%num_fetchers == 0) {
@@ -186,15 +192,18 @@ void dispatcher(bool* status,
     }
 
     if (!allowed_queue->empty()) {
-      std::string url;
-      allowed_queue->pop(url);
-      urlfactory::UrlParser up(url);
+      std::string content;
+      allowed_queue->pop(content);
 
-      if ((hmapit = history_map.find(up.get_host())) != history_map.end()) {
+      std::string host;
+      std::string url;
+      unpack(content, {&host, &url});
+
+      if ((hmapit = history_map.find(host)) != history_map.end()) {
         // the domain was found in the history
         if (hmapit->second.second < max_fetch_per_site) {
           // We are under the limit, ok to send it
-          url_queues->at(fetcher_id).push(url);
+          url_queues->at(fetcher_id).push(content);
 
           fetcher_id++;
           if (fetcher_id >=  num_fetchers) {
@@ -205,7 +214,7 @@ void dispatcher(bool* status,
           hmapit->second.second++;
         } else {
           // to many request, put it in the queue
-          allowed_queue->push(url);
+          allowed_queue->push(content);
         }
       } else {
         // the domain was not found in the history
@@ -215,8 +224,8 @@ void dispatcher(bool* status,
           history_map.erase(history_order.front());
           history_order.pop();
         }
-        history_map.emplace(up.get_host(), std::pair<unsigned int, unsigned int>(num_sent, 1U));
-        url_queues->at(fetcher_id).push(url);
+        history_map.emplace(host, std::pair<unsigned int, unsigned int>(num_sent, 1U));
+        url_queues->at(fetcher_id).push(content);
         num_sent++;
 
         fetcher_id++;

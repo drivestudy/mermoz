@@ -44,12 +44,16 @@ void fetcher(thread_safe::queue<std::string>* url_queue,
 
   while (*do_fetch)
   {
-    std::string url;
-    url_queue->pop(url);
-    (*mem_sec) -= url.size();
+    std::string message;
+    url_queue->pop(message);
+    (*mem_sec) -= message.size();
 
-    std::string eff_url;
+    std::string host;
+    std::string url;
+    unpack(message, {&host, &url});
+
     std::string content;
+    std::string eff_url;
 
 #   ifdef MMZ_PROFILE
     long http_code = http_fetch(url, eff_url, content, 60L, user_agent);
@@ -59,7 +63,7 @@ void fetcher(thread_safe::queue<std::string>* url_queue,
 
     std::string http_code_string(std::to_string(http_code));
 
-    std::string message;
+    message.clear();
     pack(message, {&url, &eff_url, &http_code_string, &content});
 
     (*mem_sec) += message.size();
