@@ -46,7 +46,8 @@ void encode (std::string& instring, std::string& outstring)
       remains--;
     } else if ((c >= 0x30 && c <= 0x39) || // 0 -> 9
                (c >= 0x41 && c <= 0x5a) || // A -> Z
-               (c >= 0x61 && c <= 0x7a)) { // a -> z
+               (c >= 0x61 && c <= 0x7a) || // a -> z
+               c == '%') { // do not convert percents !!!
       /*
        * Allowed without percent encoding
        */

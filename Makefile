@@ -32,7 +32,8 @@ BINLIST = src/common/packer.o\
 					src/urlfactory/ssanitize.o\
 					src/urlfactory/robots.o\
 					src/urlfactory/logs.o\
-					src/urlfactory/network.o
+					src/urlfactory/network.o\
+					src/urlfactory/hexencode.o
 
 %.o: %.cpp
 	$(CC) $(OPT) $(PROF) $(VERB) $(INC) -c -o $@ $^
