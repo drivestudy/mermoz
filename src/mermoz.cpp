@@ -155,7 +155,8 @@ int main (int argc, char** argv)
     seedfile >> link;
     if (!link.empty()) {
       urlfactory::UrlParser up(link);
-      std::string message, host;
+      std::string message;
+      std::string host {up.get_host()};
       pack(message, {&host, &message});
       url_queues[queue_id].push(message);
       mem_sec += message.size();
