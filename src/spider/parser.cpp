@@ -293,7 +293,8 @@ void url_formating(std::string& base, std::string& raw_urls, std::string& format
       if (link.find("javascript") == std::string::npos
           && link.find("mailto") == std::string::npos
           && link.find(",") == std::string::npos
-          && link.find("404") == std::string::npos)
+          && link.find("404") == std::string::npos
+          && link.find("download") == std::string::npos)
       {
         urlfactory::UrlParser up(link);
 
