@@ -157,7 +157,7 @@ int main (int argc, char** argv)
       urlfactory::UrlParser up(link);
       std::string message;
       std::string host {up.get_host()};
-      pack(message, {&host, &message});
+      pack(message, {&host, &link});
       url_queues[queue_id].push(message);
       mem_sec += message.size();
       queue_id++;
