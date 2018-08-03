@@ -154,8 +154,11 @@ int main (int argc, char** argv)
     link = {""};
     seedfile >> link;
     if (!link.empty()) {
-      url_queues[queue_id].push(link);
-      mem_sec += link.size();
+      urlfactory::UrlParser up(link);
+      std::string message, host;
+      pack(message, {&host, &message});
+      url_queues[queue_id].push(message);
+      mem_sec += message.size();
       queue_id++;
 
       if (queue_id >= url_queues.size()) {
