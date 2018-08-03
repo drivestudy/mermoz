@@ -29,6 +29,7 @@
 #include <iostream>
 
 #include "urlparser.hpp"
+#include "hexencode.hpp"
 #include "ssanitize.hpp"
 #include "logs.hpp"
 
@@ -192,6 +193,7 @@ void UrlParser::parse()
     if (is_good) {
       // We replace the parsed URL by the cleaned one
       path = get_url(false, false, true, false, false);
+      query = get_url(false, false, false, true, false);
 
       // We verify the value of 'is_complete'
       is_complete = !rel_scheme && !rel_auth && !rel_path;
@@ -562,6 +564,19 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
     path.insert(0, "/");
   }
 
+  for (auto it = segments.begin();
+       it != segments.end();
+       it++) {
+    /*
+     * We perform a percentage encoding
+     */
+    if (!it->empty()) {
+      std::string encoded;
+      encode (*it, encoded);
+      *it = encoded;
+    }
+  }
+
   /*
    * Time to check the status what to do...
    */
@@ -636,6 +651,19 @@ int UrlParser::parse_query(const char* cstr, size_t& pos, const size_t pos_max)
     arguments.push_back(query.substr(sep_pos + 1, loc_pos - sep_pos - 1));
   }
 
+  for (auto it = arguments.begin();
+       it != arguments.end();
+       it++) {
+    /*
+     * We perform a percentage encoding
+     */
+    if (!it->empty()) {
+      std::string encoded;
+      encode (*it, encoded);
+      *it = encoded;
+    }
+  }
+
   /*
    * Time to check the status what to do...
    */
@@ -662,6 +690,15 @@ int UrlParser::parse_frag(const char* cstr, size_t& pos, const size_t pos_max)
   while (pos < pos_max) {
     frag.push_back(cstr[pos]);
     pos++;
+  }
+
+  /*
+   * We perform a percentage encoding
+   */
+  if (!frag.empty()) {
+    std::string encoded;
+    encode (frag, encoded);
+    frag = encoded;
   }
 
   /*
@@ -730,7 +767,15 @@ std::string UrlParser::get_url(bool get_scheme, bool get_auth, bool get_path,
   }
 
   if (get_query) {
-    out_url.append(query);
+    if (!query.empty()) {
+      out_url.append("?");
+
+      for(auto& arg : arguments) {
+        out_url.append(arg).append("&");
+      }
+
+      out_url.pop_back();
+    }
   }
 
   if (get_frag) {
