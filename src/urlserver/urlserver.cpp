@@ -148,12 +148,15 @@ void urlserver(bool* status,
             std::string content;
             std::string host {up.get_host()};
             std::string url {*purlit};
-            pack(content, {&host, &url});
-            (*usets->mem_sec) += content.size();
-            allowed_queue.push(content);
 
-            (*usets->mem_sec) += purlit->size();
-            to_visit.insert(*purlit);
+            if (!host.empty()) {
+              pack(content, {&host, &url});
+              (*usets->mem_sec) += content.size();
+              allowed_queue.push(content);
+
+              (*usets->mem_sec) += purlit->size();
+              to_visit.insert(*purlit);
+            }
           }
 
           (*usets->mem_sec) -= purlit->size();
