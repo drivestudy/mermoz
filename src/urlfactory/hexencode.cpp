@@ -44,11 +44,12 @@ void encode (std::string& instring, std::string& outstring)
     if (remains > 0) {
       oss << "%" << std::hex << static_cast<int>(c);
       remains--;
-    } else if ((c >= 0x30 && c <= 0x39) || // 0 -> 9
-               (c >= 0x41 && c <= 0x5a) || // A -> Z
+    } else if (c == '#' || c == '%' ||
+               c == '&' || c == '*' ||
+               (c >= 0x2d && c <= 0x3b) || // - -> ;
+               (c >= 0x3f && c <= 0x5a) || // ? -> Z
                (c >= 0x61 && c <= 0x7a) || // a -> z
-               c == '%' || c == '_' || c == '-' ||
-               c == '.' || c == '~') { // unreserved
+               c == '=' || c == '_' || c == '~') {
       /*
        * Allowed without percent encoding
        */
