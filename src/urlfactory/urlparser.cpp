@@ -789,9 +789,8 @@ std::string UrlParser::get_url(bool get_scheme, bool get_auth, bool get_path,
     }
   }
 
-  if (get_frag) {
-    out_url.append("#");
-    out_url.append(frag);
+  if (get_frag && !frag.empty()) {
+    out_url.append("#").append(frag);
   }
 
   return out_url;
