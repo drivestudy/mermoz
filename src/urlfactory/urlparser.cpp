@@ -154,7 +154,7 @@ void UrlParser::parse()
       /*
        * Fragment URL and path relative
        */
-      parse_status = PARSE_QUERY;
+      parse_status = PARSE_FRAG;
 
       /*
        * If it is a relative URL,
