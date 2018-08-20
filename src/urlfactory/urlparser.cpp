@@ -192,6 +192,7 @@ void UrlParser::parse()
     is_good = parse_status != ERR_PARSE;
     if (is_good) {
       // We replace the parsed URL by the cleaned one
+      url = get_url();
       path = get_url(false, false, true, false, false);
       query = get_url(false, false, false, true, false);
 
@@ -601,6 +602,11 @@ int UrlParser::parse_path(const char* cstr, size_t& pos, const size_t pos_max)
 int UrlParser::parse_query(const char* cstr, size_t& pos, const size_t pos_max)
 {
   /*
+   * We delete the first char which is '?'
+   */
+  pos++;
+
+  /*
    * We arrived within QUERY,
    * thus the only option available is:
    * - FRAG.
@@ -687,6 +693,11 @@ int UrlParser::parse_query(const char* cstr, size_t& pos, const size_t pos_max)
 
 int UrlParser::parse_frag(const char* cstr, size_t& pos, const size_t pos_max)
 {
+  /*
+   * We delete the first char which is '#'
+   */
+  pos++;
+
   while (pos < pos_max) {
     frag.push_back(cstr[pos]);
     pos++;
@@ -779,6 +790,7 @@ std::string UrlParser::get_url(bool get_scheme, bool get_auth, bool get_path,
   }
 
   if (get_frag) {
+    out_url.append("#");
     out_url.append(frag);
   }
 
