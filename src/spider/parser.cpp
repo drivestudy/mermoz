@@ -216,7 +216,16 @@ std::string get_links(GumboNode* node)
   if (node->v.element.tag == GUMBO_TAG_A &&
       (href = gumbo_get_attribute(&node->v.element.attributes, "href")))
   {
-    return std::string(href->value);
+    GumboAttribute* rel = gumbo_get_attribute(&node->v.element.attributes, "rel");
+
+    if (rel == nullptr) {
+      return std::string(href->value);
+    } else if (std::strcmp(rel->value, "nofollow") != 0) {
+      /*
+       * We check the 'nofollow' rule
+       */
+      return std::string(href->value);
+    }
   }
 
   std::string links("");

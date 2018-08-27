@@ -49,6 +49,7 @@ public:
   Robots(std::string host,
          std::string user_agent,
          std::string user_agent_full) :
+    is_tried(false),
     is_good(false),
     is_empty(false),
     host(host),
@@ -60,6 +61,11 @@ public:
   bool good()
   {
     return is_good;
+  }
+
+  bool tried()
+  {
+    return is_tried;
   }
 
   bool empty()
@@ -82,6 +88,7 @@ public:
   }
 
 private:
+  bool is_tried;
   bool is_good;
   bool is_empty;
 

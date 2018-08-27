@@ -141,21 +141,23 @@ void urlserver(bool* status,
 
         purlit++;
       } else {
-        if (mapit->second.good()) {
-          if (mapit->second.is_allowed(up)
-              && to_visit.find(*purlit) == to_visit.end()) {
+        if (mapit->second.tried()) {
+          if (mapit->second.good()) {
+            if (mapit->second.is_allowed(up)
+                && to_visit.find(*purlit) == to_visit.end()) {
 
-            std::string content;
-            std::string host {up.get_host()};
-            std::string url {*purlit};
+              std::string content;
+              std::string host {up.get_host()};
+              std::string url {*purlit};
 
-            if (!host.empty()) {
-              pack(content, {&host, &url});
-              (*usets->mem_sec) += content.size();
-              allowed_queue.push(content);
+              if (!host.empty()) {
+                pack(content, {&host, &url});
+                (*usets->mem_sec) += content.size();
+                allowed_queue.push(content);
 
-              (*usets->mem_sec) += purlit->size();
-              to_visit.insert(*purlit);
+                (*usets->mem_sec) += purlit->size();
+                to_visit.insert(*purlit);
+              }
             }
           }
 

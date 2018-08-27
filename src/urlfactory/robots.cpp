@@ -110,6 +110,8 @@ void Robots::initialize(Robots* rbt)
     rbt->is_good = private_is_good;
     rbt->is_empty = robotstxt.empty();
   }
+
+  rbt->is_tried = true;
 }
 
 void Robots::fetch_robots(Robots* rbt, std::string& robotstxt, long& http_code)
